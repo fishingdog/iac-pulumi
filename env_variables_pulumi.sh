@@ -17,11 +17,11 @@ export RT_PUBLIC_ROUTE_TABLE_NAME="null"
 export RT_PRIVATE_ROUTE_TABLE_NAME="null"
 #"default_private_route_table"
 
-export PUBLIC_SUBNET_CIDER_LIST = "10.1.15.0/24, 10.1.17.0/24, 10.1.19.0/24"
-export PUBLIC_SUBNET_TAG_NAME_LIST = "public_subnet_aria, public_subnet_bria, public_subnet_cria"
+export PUBLIC_SUBNET_CIDER_LIST="10.1.15.0/24, 10.1.17.0/24, 10.1.19.0/24"
+export PUBLIC_SUBNET_TAG_NAME_LIST="public_subnet_aria, public_subnet_bria, public_subnet_cria"
 
-export PRIV_SUBNET_CIDER_LIST = "10.1.205.0/24, 10.1.207.0/24, 10.1.209.0/24"
-export PRIV_SUBNET_TAG_NAME_LIST = "private_subnet_aron, private_subnet_bron, private_subnet_cron"
+export PRIV_SUBNET_CIDER_LIST="10.1.205.0/24, 10.1.207.0/24, 10.1.209.0/24"
+export PRIV_SUBNET_TAG_NAME_LIST="private_subnet_aron, private_subnet_bron, private_subnet_cron"
 
 
 
