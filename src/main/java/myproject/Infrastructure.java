@@ -9,6 +9,7 @@ import com.pulumi.aws.inputs.GetAvailabilityZonesArgs;
 import java.security.SecureRandom;
 import java.util.ArrayList;
 import java.util.Map;
+import java.util.Objects;
 
 
 public class Infrastructure {
@@ -16,48 +17,61 @@ public class Infrastructure {
         String vpcCidrBlockValue = System.getenv("VPC_CIDR_BLOCK");
         String vpcInstanceTenancyValue = System.getenv("VPC_INSTANCE_TENANCY");
         String vpcName = System.getenv("VPC_TAG_NAME");
+        if (vpcCidrBlockValue == null || Objects.equals(vpcCidrBlockValue, "null")) {vpcCidrBlockValue = "10.1.0.0/16";}
+        if (vpcInstanceTenancyValue == null || Objects.equals(vpcInstanceTenancyValue, "null")) {vpcInstanceTenancyValue = "default";}
+        if (vpcName == null || Objects.equals(vpcName, "null")) {vpcName = "defaultVpc";}
         Vpc myvpc = createVpc(vpcCidrBlockValue, vpcInstanceTenancyValue, vpcName);
 
-        String igTagNameValue = System.getenv("VPC_TAG_NAME");
+        String igTagNameValue = System.getenv("IG_TAG_NAME");
+        if (igTagNameValue == null || Objects.equals(igTagNameValue, "null")) {igTagNameValue = "defaultGW";}
         InternetGateway igw = createInternetGateway(igTagNameValue);
 
         attachInternetGateway(myvpc, igw);
 
         String routeCidrBlockValue = System.getenv("RT_ROUTE_CIDR_BLOCK");
         String routePublicTableNameValue = System.getenv("RT_PUBLIC_ROUTE_TABLE_NAME");
+        if (routeCidrBlockValue == null || Objects.equals(routeCidrBlockValue, "null")) {routeCidrBlockValue = "0.0.0.0/0";}
+        if (routePublicTableNameValue == null || Objects.equals(routePublicTableNameValue, "null")) {routePublicTableNameValue = "default_pub_route_table";}
         RouteTable pubRT = createRouteTable(myvpc, igw, routeCidrBlockValue, routePublicTableNameValue);
 
         String routePrivateTableNameValue = System.getenv("RT_PRIVATE_ROUTE_TABLE_NAME");
+        if (routePrivateTableNameValue == null || Objects.equals(routePrivateTableNameValue, "null")) {routePrivateTableNameValue = "default_private_route_table";}
         RouteTable privRT = createPrivateRouteTable(myvpc, routePrivateTableNameValue);
 
-//        String subnetCiderPrefix = System.getenv("PUBLIC_SUBNET_CIDER_PREFIX");
-//        String subnetCiderStartingIndex = System.getenv("PUBLIC_SUBNET_CIDER_START");
-//        String subnetTagNamePrefix = System.getenv("PUBLIC_SUBNET_TAG_NAME_PREFIX");
-//        String numOfSubnets = System.getenv("NUM_OF_PUBLIC_SUBNETS");
-        String subnetCiderPrefix = "10.1.";
-        String subnetCiderStartingIndex = "0";
-        String subnetTagNamePrefix = "public_subnet";
-        String numOfSubnets = "3";
-        createMultipleSubnetWithRouteTable(myvpc, subnetCiderPrefix, subnetCiderStartingIndex, subnetTagNamePrefix, numOfSubnets, pubRT);
+        String subnetCiderPrefixPub = System.getenv("PUBLIC_SUBNET_CIDER_PREFIX");
+        String subnetCiderStartingIndexPub = System.getenv("PUBLIC_SUBNET_CIDER_START");
+        String subnetTagNamePrefixPub = System.getenv("PUBLIC_SUBNET_TAG_NAME_PREFIX");
+        String numOfSubnetsPub = System.getenv("NUM_OF_PUBLIC_SUBNETS");
+        if (subnetCiderPrefixPub == null || Objects.equals(subnetCiderPrefixPub, "null")) {subnetCiderPrefixPub = "10.1.";}
+        if (subnetCiderStartingIndexPub == null || Objects.equals(subnetCiderStartingIndexPub, "null")) {subnetCiderStartingIndexPub = "0"; }
+        if (subnetTagNamePrefixPub == null || Objects.equals(subnetTagNamePrefixPub, "null")) {subnetTagNamePrefixPub = "public_subnet"; }
+        if (numOfSubnetsPub == null || Objects.equals(numOfSubnetsPub, "null")) {numOfSubnetsPub = "3"; }
+        createMultipleSubnetWithRouteTable(myvpc, subnetCiderPrefixPub, subnetCiderStartingIndexPub, subnetTagNamePrefixPub, numOfSubnetsPub, pubRT);
 
-        subnetCiderStartingIndex = "100";
-        subnetTagNamePrefix = "private_Subnet";
-        createMultipleSubnetWithRouteTable(myvpc, subnetCiderPrefix, subnetCiderStartingIndex, subnetTagNamePrefix, numOfSubnets, privRT);
+        String subnetCiderPrefixPriv = System.getenv("PRIV_SUBNET_CIDER_PREFIX");
+        String subnetCiderStartingIndexPriv = System.getenv("PRIV_SUBNET_CIDER_START");
+        String subnetTagNamePrefixPriv = System.getenv("PRIV_SUBNET_TAG_NAME_PREFIX");
+        String numOfSubnetsPriv = System.getenv("NUM_OF_PUBLIC_SUBNETS_PRIV");
+        if (subnetCiderPrefixPriv == null || Objects.equals(subnetCiderPrefixPriv, "null")) {subnetCiderPrefixPriv = "10.1.";}
+        if (subnetCiderStartingIndexPriv == null || Objects.equals(subnetCiderStartingIndexPriv, "null")) {subnetCiderStartingIndexPriv = "100"; }
+        if (subnetTagNamePrefixPriv == null || Objects.equals(subnetTagNamePrefixPriv, "null")) {subnetTagNamePrefixPriv = "private_subnet"; }
+        if (numOfSubnetsPriv == null || Objects.equals(numOfSubnetsPriv, "null")) {numOfSubnetsPriv = "3"; }
+        createMultipleSubnetWithRouteTable(myvpc, subnetCiderPrefixPriv, subnetCiderStartingIndexPriv, subnetTagNamePrefixPriv, numOfSubnetsPriv, privRT);
 
     }
 
     private static Vpc createVpc(String cidrBlockValue, String instanceTenancyValue, String tagNameValue) {
         return new Vpc("main", VpcArgs.builder()
-                .cidrBlock(cidrBlockValue != null ? cidrBlockValue : "10.1.0.0/16")
-                .instanceTenancy(instanceTenancyValue != null ? instanceTenancyValue : "default")
-                .tags(Map.of("Name", tagNameValue != null ? tagNameValue : "defaultVpc"))
+                .cidrBlock(cidrBlockValue)
+                .instanceTenancy(instanceTenancyValue)
+                .tags(Map.of("Name", tagNameValue))
                 .build());
     }
 
 
     private static InternetGateway createInternetGateway(String tagNameValue) {
         return new InternetGateway("gw", InternetGatewayArgs.builder()
-                .tags(Map.of("Name", tagNameValue != null ? tagNameValue : "defaultGW"))
+                .tags(Map.of("Name", tagNameValue))
                 .build());
     }
 
@@ -82,21 +96,17 @@ public class Infrastructure {
 
     public static void createMultipleSubnetWithRouteTable(Vpc myvpc, String subnetCiderBlockPrefix, String subnetCiderStartingIndex, String subnetTagNamePrefix, String numOfSubnets, RouteTable rt) {
 
-        if (subnetCiderBlockPrefix == null) { subnetCiderBlockPrefix = "10.1."; }
         int startIndex = 0;
-        if (subnetCiderStartingIndex != null) {startIndex = Integer.parseInt(subnetCiderStartingIndex);}
-        if (subnetTagNamePrefix == null) { subnetTagNamePrefix = "mysubnet"; }
+        startIndex = Integer.parseInt(subnetCiderStartingIndex);
         int numOfSubnet = 0;
-        if (numOfSubnets == null) {
-            numOfSubnet = 3;
-        } else { numOfSubnet = Integer.parseInt(numOfSubnets); }
+        numOfSubnet = Integer.parseInt(numOfSubnets);
 
         final var available = AwsFunctions.getAvailabilityZones(GetAvailabilityZonesArgs.builder()
                 .state("available")
                 .build());
 
         for (int i = 0; i < numOfSubnet; i++) {
-            int curIndex = startIndex + i;
+            final int curIndex = startIndex + i;
             String subnetCiderBlockValue = subnetCiderBlockPrefix + curIndex + ".0/24";
             String subnetTagNameValue = subnetTagNamePrefix + i;
             final int zoneIndex = i;
@@ -116,10 +126,10 @@ public class Infrastructure {
         return new RouteTable("testRouteTable", RouteTableArgs.builder()
                 .vpcId(myvpc.id())
                 .routes(RouteTableRouteArgs.builder()
-                        .cidrBlock(routeCidrBlockValue != null ? routeCidrBlockValue : "0.0.0.0/0")
+                        .cidrBlock(routeCidrBlockValue)
                         .gatewayId(igw.id())
                         .build())
-                .tags(Map.of("Name", routeTableNameValue != null ? routeTableNameValue : "default_pub_route_table"))
+                .tags(Map.of("Name", routeTableNameValue))
                 .build());
     }
 
@@ -128,7 +138,7 @@ public class Infrastructure {
 
         return new RouteTable("privateRouteTable", RouteTableArgs.builder()
                 .vpcId(myvpc.id())
-                .tags(Map.of("Name", routePrivateTableNameValue != null ? routePrivateTableNameValue : "default_private_route_table"))
+                .tags(Map.of("Name", routePrivateTableNameValue))
                 .build());
     }
 
