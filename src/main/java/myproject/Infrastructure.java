@@ -47,13 +47,13 @@ public class Infrastructure {
     }
 
     private static Vpc createVpc(String cidrBlockValue, String instanceTenancyValue, String tagNameValue) {
-
         return new Vpc("main", VpcArgs.builder()
                 .cidrBlock(cidrBlockValue != null ? cidrBlockValue : "10.1.0.0/16")
                 .instanceTenancy(instanceTenancyValue != null ? instanceTenancyValue : "default")
                 .tags(Map.of("Name", tagNameValue != null ? tagNameValue : "defaultVpc"))
                 .build());
     }
+
 
     private static InternetGateway createInternetGateway(String tagNameValue) {
         return new InternetGateway("gw", InternetGatewayArgs.builder()
@@ -68,6 +68,7 @@ public class Infrastructure {
                 .build());
     }
 
+
     public static Subnet createSubnet(Vpc myvpc, String subnetCiderBlockValue, String myZone, String subnetTagNameValue) {
         return new Subnet("main", SubnetArgs.builder()
                 .vpcId(myvpc.id())
@@ -77,6 +78,7 @@ public class Infrastructure {
                 .build()
             );
     }
+
 
     public static void createMultipleSubnetWithRouteTable(Vpc myvpc, String subnetCiderBlockPrefix, String subnetCiderStartingIndex, String subnetTagNamePrefix, String numOfSubnets, RouteTable rt) {
 
@@ -110,6 +112,7 @@ public class Infrastructure {
     }
 
     private static RouteTable createRouteTable(Vpc myvpc, InternetGateway igw, String routeCidrBlockValue, String routeTableNameValue) {
+
         return new RouteTable("testRouteTable", RouteTableArgs.builder()
                 .vpcId(myvpc.id())
                 .routes(RouteTableRouteArgs.builder()
@@ -119,6 +122,7 @@ public class Infrastructure {
                 .tags(Map.of("Name", routeTableNameValue != null ? routeTableNameValue : "default_pub_route_table"))
                 .build());
     }
+
 
     private static RouteTable createPrivateRouteTable(Vpc myvpc, String routePrivateTableNameValue) {
 
@@ -149,6 +153,5 @@ public class Infrastructure {
 
         return sb.toString();
     }
-
 
 }
