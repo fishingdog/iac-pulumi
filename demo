@@ -1,0 +1,6 @@
+export AWS_PROFILE=demo
+export AWS_DEFAULT_REGION=us-west-2
+
+pulumi up
+pulumi destroy
+if not destroyed, refresh aws concole website
