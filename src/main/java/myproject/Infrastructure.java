@@ -5,12 +5,12 @@ import com.pulumi.aws.AwsFunctions;
 import com.pulumi.aws.ec2.*;
 import com.pulumi.aws.ec2.inputs.RouteTableRouteArgs;
 import com.pulumi.aws.inputs.GetAvailabilityZonesArgs;
+import com.pulumi.aws.inputs.GetAvailabilityZonesPlainArgs;
+import com.pulumi.aws.outputs.GetAvailabilityZonesResult;
 
+import java.lang.reflect.Array;
 import java.security.SecureRandom;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Map;
-import java.util.Objects;
+import java.util.*;
 
 
 public class Infrastructure {
@@ -20,11 +20,11 @@ public class Infrastructure {
         String vpcName = System.getenv("VPC_TAG_NAME");
         if (vpcCidrBlockValue == null || Objects.equals(vpcCidrBlockValue, "null")) {vpcCidrBlockValue = "10.1.0.0/16";}
         if (vpcInstanceTenancyValue == null || Objects.equals(vpcInstanceTenancyValue, "null")) {vpcInstanceTenancyValue = "default";}
-        if (vpcName == null || Objects.equals(vpcName, "null")) {vpcName = "defaultVpc";}
+        if (vpcName == null || Objects.equals(vpcName, "null")) {vpcName = "myVpc";}
         Vpc myvpc = createVpc(vpcCidrBlockValue, vpcInstanceTenancyValue, vpcName);
 
         String igTagNameValue = System.getenv("IG_TAG_NAME");
-        if (igTagNameValue == null || Objects.equals(igTagNameValue, "null")) {igTagNameValue = "defaultGW";}
+        if (igTagNameValue == null || Objects.equals(igTagNameValue, "null")) {igTagNameValue = "myGW";}
         InternetGateway igw = createInternetGateway(igTagNameValue);
 
         attachInternetGateway(myvpc, igw);
@@ -43,13 +43,13 @@ public class Infrastructure {
         String subnetTagNameListPub = System.getenv("PUBLIC_SUBNET_TAG_NAME_LIST");
         if (subnetCiderListPub == null || Objects.equals(subnetCiderListPub, "null")) {subnetCiderListPub = "10.1.0.0/24, 10.1.1.0/24, 10.1.2.0/24";}
         if (subnetTagNameListPub == null || Objects.equals(subnetTagNameListPub, "null")) {subnetTagNameListPub = "public_subnet_a, public_subnet_b, public_subnet_c"; }
-        createThreeSubnetWithRouteTable(myvpc, subnetCiderListPub, subnetTagNameListPub, pubRT);
+        createThreeSubnetWithRouteTable(myvpc, subnetCiderListPub, subnetTagNameListPub, pubRT, ctx);
 
         String subnetCiderListPriv = System.getenv("PRIV_SUBNET_CIDER_LIST");
         String subnetTagNameListPriv = System.getenv("PRIV_SUBNET_TAG_NAME_LIST");
         if (subnetCiderListPriv == null || Objects.equals(subnetCiderListPriv, "null")) {subnetCiderListPriv = "10.1.100.0/24, 10.1.101.0/24, 10.1.102.0/24";}
         if (subnetTagNameListPriv == null || Objects.equals(subnetTagNameListPriv, "null")) {subnetTagNameListPriv = "private_subnet_a, private_subnet_b, private_subnet_c"; }
-        createThreeSubnetWithRouteTable(myvpc, subnetCiderListPriv, subnetTagNameListPriv, privRT);
+        createThreeSubnetWithRouteTable(myvpc, subnetCiderListPriv, subnetTagNameListPriv, privRT, ctx);
 
 
 
@@ -108,7 +108,7 @@ public class Infrastructure {
             );
     }
 
-    public static void createThreeSubnetWithRouteTable(Vpc myvpc, String subnetCiderList, String subnetTagNameList, RouteTable rt) {
+    public static void createThreeSubnetWithRouteTable(Vpc myvpc, String subnetCiderList, String subnetTagNameList, RouteTable rt, Context ctx) {
 
         String[] ciderList = subnetCiderList.split(",\\s*");
         ArrayList<String> listOfCider = new ArrayList<>(Arrays.asList(ciderList));
@@ -118,23 +118,35 @@ public class Infrastructure {
 
         int numOfSubnets = listOfCider.size();
 
-        final var available = AwsFunctions.getAvailabilityZones(GetAvailabilityZonesArgs.builder()
-                .state("available")
-                .build());
-
-        for (int i = 0; i < numOfSubnets; i++) {
-
-            String subnetCiderBlockValue = listOfCider.get(i);
-            String subnetTagNameValue = listOfName.get(i);
-            final int zoneIndex = i;
-            Subnet mysubnet = new Subnet(subnetTagNameValue, SubnetArgs.builder()
-                    .tags(Map.of("Name", subnetTagNameValue))
-                    .vpcId(myvpc.id())
-                    .cidrBlock(subnetCiderBlockValue)
-                    .availabilityZone(available.applyValue(getAvailabilityZonesResult -> getAvailabilityZonesResult.names().get(zoneIndex)))
+        try {
+            final var available = AwsFunctions.getAvailabilityZonesPlain(GetAvailabilityZonesPlainArgs.builder()
+                    .state("available")
                     .build());
-            associateRouteTableToSubnet(mysubnet, rt);
 
+            final GetAvailabilityZonesResult getAvailabilityZonesResult = available.get();
+
+            final List<String> zoneNameList = getAvailabilityZonesResult.names();
+
+            if (numOfSubnets > zoneNameList.size()) {
+                numOfSubnets = zoneNameList.size();
+            }
+
+            for (int i = 0; i < numOfSubnets; i++) {
+
+                String subnetCiderBlockValue = listOfCider.get(i);
+                String subnetTagNameValue = listOfName.get(i);
+                final int zoneIndex = i;
+                Subnet mysubnet = new Subnet(subnetTagNameValue, SubnetArgs.builder()
+                        .tags(Map.of("Name", subnetTagNameValue))
+                        .vpcId(myvpc.id())
+                        .cidrBlock(subnetCiderBlockValue)
+                        .availabilityZone(zoneNameList.get(i))
+                        .build());
+                associateRouteTableToSubnet(mysubnet, rt);
+
+            }
+        } catch (Exception e) {
+            ctx.log().error(e.getMessage());
         }
     }
 
