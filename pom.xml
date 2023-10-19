@@ -29,7 +29,6 @@
             <version>(6.0.2,6.99]</version>
         </dependency>
 
-
     </dependencies>
 
     <build>
