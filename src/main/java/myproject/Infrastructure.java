@@ -43,36 +43,19 @@ public class Infrastructure {
         String subnetTagNameListPub = System.getenv("PUBLIC_SUBNET_TAG_NAME_LIST");
         if (subnetCiderListPub == null || Objects.equals(subnetCiderListPub, "null")) {subnetCiderListPub = "10.1.0.0/24, 10.1.1.0/24, 10.1.2.0/24";}
         if (subnetTagNameListPub == null || Objects.equals(subnetTagNameListPub, "null")) {subnetTagNameListPub = "public_subnet_a, public_subnet_b, public_subnet_c"; }
-        createThreeSubnetWithRouteTable(myvpc, subnetCiderListPub, subnetTagNameListPub, pubRT, ctx);
+        ArrayList<Subnet> pubSubnetList = createThreeSubnetWithRouteTable(myvpc, subnetCiderListPub, subnetTagNameListPub, pubRT, ctx);
 
         String subnetCiderListPriv = System.getenv("PRIV_SUBNET_CIDER_LIST");
         String subnetTagNameListPriv = System.getenv("PRIV_SUBNET_TAG_NAME_LIST");
         if (subnetCiderListPriv == null || Objects.equals(subnetCiderListPriv, "null")) {subnetCiderListPriv = "10.1.100.0/24, 10.1.101.0/24, 10.1.102.0/24";}
         if (subnetTagNameListPriv == null || Objects.equals(subnetTagNameListPriv, "null")) {subnetTagNameListPriv = "private_subnet_a, private_subnet_b, private_subnet_c"; }
-        createThreeSubnetWithRouteTable(myvpc, subnetCiderListPriv, subnetTagNameListPriv, privRT, ctx);
+        ArrayList<Subnet> privSubnetList = createThreeSubnetWithRouteTable(myvpc, subnetCiderListPriv, subnetTagNameListPriv, privRT, ctx);
 
+        SecurityGroup appSecurityGroup = SecurityGroupCreator.createApplicationSecurityGroup(myvpc);
 
-
-//        String subnetCiderPrefixPub = System.getenv("PUBLIC_SUBNET_CIDER_PREFIX");
-//        String subnetCiderStartingIndexPub = System.getenv("PUBLIC_SUBNET_CIDER_START");
-//        String subnetTagNamePrefixPub = System.getenv("PUBLIC_SUBNET_TAG_NAME_PREFIX");
-//        String numOfSubnetsPub = System.getenv("NUM_OF_PUBLIC_SUBNETS");
-//        if (subnetCiderPrefixPub == null || Objects.equals(subnetCiderPrefixPub, "null")) {subnetCiderPrefixPub = "10.1.";}
-//        if (subnetCiderStartingIndexPub == null || Objects.equals(subnetCiderStartingIndexPub, "null")) {subnetCiderStartingIndexPub = "0"; }
-//        if (subnetTagNamePrefixPub == null || Objects.equals(subnetTagNamePrefixPub, "null")) {subnetTagNamePrefixPub = "public_subnet"; }
-//        if (numOfSubnetsPub == null || Objects.equals(numOfSubnetsPub, "null")) {numOfSubnetsPub = "3"; }
-//        createMultipleSubnetWithRouteTable(myvpc, subnetCiderPrefixPub, subnetCiderStartingIndexPub, subnetTagNamePrefixPub, numOfSubnetsPub, pubRT);
-//
-//        String subnetCiderPrefixPriv = System.getenv("PRIV_SUBNET_CIDER_PREFIX");
-//        String subnetCiderStartingIndexPriv = System.getenv("PRIV_SUBNET_CIDER_START");
-//        String subnetTagNamePrefixPriv = System.getenv("PRIV_SUBNET_TAG_NAME_PREFIX");
-//        String numOfSubnetsPriv = System.getenv("NUM_OF_PUBLIC_SUBNETS_PRIV");
-//        if (subnetCiderPrefixPriv == null || Objects.equals(subnetCiderPrefixPriv, "null")) {subnetCiderPrefixPriv = "10.1.";}
-//        if (subnetCiderStartingIndexPriv == null || Objects.equals(subnetCiderStartingIndexPriv, "null")) {subnetCiderStartingIndexPriv = "100"; }
-//        if (subnetTagNamePrefixPriv == null || Objects.equals(subnetTagNamePrefixPriv, "null")) {subnetTagNamePrefixPriv = "private_subnet"; }
-//        if (numOfSubnetsPriv == null || Objects.equals(numOfSubnetsPriv, "null")) {numOfSubnetsPriv = "3"; }
-//        createMultipleSubnetWithRouteTable(myvpc, subnetCiderPrefixPriv, subnetCiderStartingIndexPriv, subnetTagNamePrefixPriv, numOfSubnetsPriv, privRT);
-
+        String ami = System.getenv("AMI");
+        if (ami == null || Objects.equals(ami, "null")) {ami = "ami-06e930d39870c0680";}
+        Instance myInstance = CreateEC2Instance.createEC2Instance(appSecurityGroup, ami, pubSubnetList.get(0));
     }
 
     private static Vpc createVpc(String cidrBlockValue, String instanceTenancyValue, String tagNameValue) {
@@ -108,7 +91,7 @@ public class Infrastructure {
             );
     }
 
-    public static void createThreeSubnetWithRouteTable(Vpc myvpc, String subnetCiderList, String subnetTagNameList, RouteTable rt, Context ctx) {
+    public static ArrayList<Subnet> createThreeSubnetWithRouteTable(Vpc myvpc, String subnetCiderList, String subnetTagNameList, RouteTable rt, Context ctx) {
 
         String[] ciderList = subnetCiderList.split(",\\s*");
         ArrayList<String> listOfCider = new ArrayList<>(Arrays.asList(ciderList));
@@ -117,6 +100,7 @@ public class Infrastructure {
         ArrayList<String> listOfName = new ArrayList<>(Arrays.asList(nameList));
 
         int numOfSubnets = listOfCider.size();
+        ArrayList<Subnet> subnetList = new ArrayList<>();
 
         try {
             final var available = AwsFunctions.getAvailabilityZonesPlain(GetAvailabilityZonesPlainArgs.builder()
@@ -143,11 +127,13 @@ public class Infrastructure {
                         .availabilityZone(zoneNameList.get(i))
                         .build());
                 associateRouteTableToSubnet(mysubnet, rt);
-
+                subnetList.add(mysubnet);
             }
         } catch (Exception e) {
             ctx.log().error(e.getMessage());
         }
+
+        return subnetList;
     }
 
 
