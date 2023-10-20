@@ -23,6 +23,8 @@ public class Infrastructure {
         if (vpcName == null || Objects.equals(vpcName, "null")) {vpcName = "myVpc";}
         Vpc myvpc = createVpc(vpcCidrBlockValue, vpcInstanceTenancyValue, vpcName);
 
+        SecurityGroup appSecurityGroup = SecurityGroupCreator.createApplicationSecurityGroup(myvpc);
+
         String igTagNameValue = System.getenv("IG_TAG_NAME");
         if (igTagNameValue == null || Objects.equals(igTagNameValue, "null")) {igTagNameValue = "myGW";}
         InternetGateway igw = createInternetGateway(igTagNameValue);
@@ -50,8 +52,6 @@ public class Infrastructure {
         if (subnetCiderListPriv == null || Objects.equals(subnetCiderListPriv, "null")) {subnetCiderListPriv = "10.1.100.0/24, 10.1.101.0/24, 10.1.102.0/24";}
         if (subnetTagNameListPriv == null || Objects.equals(subnetTagNameListPriv, "null")) {subnetTagNameListPriv = "private_subnet_a, private_subnet_b, private_subnet_c"; }
         ArrayList<Subnet> privSubnetList = createThreeSubnetWithRouteTable(myvpc, subnetCiderListPriv, subnetTagNameListPriv, privRT, ctx);
-
-        SecurityGroup appSecurityGroup = SecurityGroupCreator.createApplicationSecurityGroup(myvpc);
 
         String ami = System.getenv("AMI");
         if (ami == null || Objects.equals(ami, "null")) {ami = "ami-06e930d39870c0680";}
@@ -125,6 +125,7 @@ public class Infrastructure {
                         .vpcId(myvpc.id())
                         .cidrBlock(subnetCiderBlockValue)
                         .availabilityZone(zoneNameList.get(i))
+                        .mapPublicIpOnLaunch(true)
                         .build());
                 associateRouteTableToSubnet(mysubnet, rt);
                 subnetList.add(mysubnet);

@@ -3,8 +3,6 @@ package myproject;
 import com.pulumi.aws.ec2.SecurityGroup;
 import com.pulumi.aws.ec2.SecurityGroupArgs;
 import com.pulumi.aws.ec2.Vpc;
-import com.pulumi.aws.ec2.inputs.SecurityGroupIngressArgs;
-import com.pulumi.aws.ec2.outputs.SecurityGroupIngress;
 import com.pulumi.aws.vpc.SecurityGroupEgressRule;
 import com.pulumi.aws.vpc.SecurityGroupEgressRuleArgs;
 import com.pulumi.aws.vpc.SecurityGroupIngressRule;
