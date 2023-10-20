@@ -81,15 +81,6 @@ public class Infrastructure {
     }
 
 
-    public static Subnet createSubnet(Vpc myvpc, String subnetCiderBlockValue, String myZone, String subnetTagNameValue) {
-        return new Subnet("main", SubnetArgs.builder()
-                .vpcId(myvpc.id())
-                .cidrBlock(subnetCiderBlockValue != null ? subnetCiderBlockValue : "10.1.1.0/24")
-                .tags(Map.of("Name", subnetTagNameValue != null ? subnetTagNameValue : "mysubnet"))
-                .availabilityZone(myZone != null ? myZone : "us-west-2a")
-                .build()
-            );
-    }
 
     public static ArrayList<Subnet> createThreeSubnetWithRouteTable(Vpc myvpc, String subnetCiderList, String subnetTagNameList, RouteTable rt, Context ctx) {
 
@@ -137,33 +128,6 @@ public class Infrastructure {
         return subnetList;
     }
 
-
-    public static void createMultipleSubnetWithRouteTable(Vpc myvpc, String subnetCiderBlockPrefix, String subnetCiderStartingIndex, String subnetTagNamePrefix, String numOfSubnets, RouteTable rt) {
-
-        int startIndex = 0;
-        startIndex = Integer.parseInt(subnetCiderStartingIndex);
-        int numOfSubnet = 0;
-        numOfSubnet = Integer.parseInt(numOfSubnets);
-
-        final var available = AwsFunctions.getAvailabilityZones(GetAvailabilityZonesArgs.builder()
-                .state("available")
-                .build());
-
-        for (int i = 0; i < numOfSubnet; i++) {
-            final int curIndex = startIndex + i;
-            String subnetCiderBlockValue = subnetCiderBlockPrefix + curIndex + ".0/24";
-            String subnetTagNameValue = subnetTagNamePrefix + i;
-            final int zoneIndex = i;
-            Subnet mysubnet = new Subnet(subnetTagNameValue, SubnetArgs.builder()
-                    .tags(Map.of("Name", subnetTagNameValue))
-                    .vpcId(myvpc.id())
-                    .cidrBlock(subnetCiderBlockValue)
-                    .availabilityZone(available.applyValue(getAvailabilityZonesResult -> getAvailabilityZonesResult.names().get(zoneIndex)))
-                    .build());
-            associateRouteTableToSubnet(mysubnet, rt);
-
-        }
-    }
 
     private static RouteTable createRouteTable(Vpc myvpc, InternetGateway igw, String routeCidrBlockValue, String routeTableNameValue) {
 
