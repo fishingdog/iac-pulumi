@@ -10,7 +10,7 @@ import com.pulumi.aws.vpc.SecurityGroupIngressRuleArgs;
 
 
 import java.util.Map;
-public class SecurityGroupCreator {
+public class SecurityGroupCreatorEC2 {
 
     public static SecurityGroup createApplicationSecurityGroup(Vpc myvpc) {
         SecurityGroup appSecurityGroup = new SecurityGroup("appSecurityGroup", SecurityGroupArgs.builder()
