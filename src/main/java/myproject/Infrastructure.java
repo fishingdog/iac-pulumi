@@ -7,6 +7,8 @@ import com.pulumi.aws.ec2.inputs.RouteTableRouteArgs;
 import com.pulumi.aws.inputs.GetAvailabilityZonesArgs;
 import com.pulumi.aws.inputs.GetAvailabilityZonesPlainArgs;
 import com.pulumi.aws.outputs.GetAvailabilityZonesResult;
+import com.pulumi.aws.rds.ParameterGroup;
+import com.pulumi.aws.rds.SubnetGroup;
 
 import java.lang.reflect.Array;
 import java.security.SecureRandom;
@@ -23,14 +25,17 @@ public class Infrastructure {
         if (vpcName == null || Objects.equals(vpcName, "null")) {vpcName = "myVpc";}
         Vpc myvpc = createVpc(vpcCidrBlockValue, vpcInstanceTenancyValue, vpcName);
 
-        SecurityGroup appSecurityGroup = SecurityGroupCreator.createApplicationSecurityGroup(myvpc);
+        SecurityGroup appSecurityGroup = SecurityGroupCreatorEC2.createApplicationSecurityGroup(myvpc);
+        SecurityGroup dbSecurityGroup = SecurityGroupCreatorDB.createDatabaseSecurityGroup(myvpc);
 
+        //create & attaching internet gateway to created VPC
         String igTagNameValue = System.getenv("IG_TAG_NAME");
         if (igTagNameValue == null || Objects.equals(igTagNameValue, "null")) {igTagNameValue = "myGW";}
         InternetGateway igw = createInternetGateway(igTagNameValue);
 
         attachInternetGateway(myvpc, igw);
 
+        // Create public & private routing tables
         String routeCidrBlockValue = System.getenv("RT_ROUTE_CIDR_BLOCK");
         String routePublicTableNameValue = System.getenv("RT_PUBLIC_ROUTE_TABLE_NAME");
         if (routeCidrBlockValue == null || Objects.equals(routeCidrBlockValue, "null")) {routeCidrBlockValue = "0.0.0.0/0";}
@@ -41,18 +46,26 @@ public class Infrastructure {
         if (routePrivateTableNameValue == null || Objects.equals(routePrivateTableNameValue, "null")) {routePrivateTableNameValue = "default_private_route_table";}
         RouteTable privRT = createPrivateRouteTable(myvpc, routePrivateTableNameValue);
 
+        // create 3 public subnets & 3 private subnets in the VPC created
         String subnetCiderListPub = System.getenv("PUBLIC_SUBNET_CIDER_LIST");
         String subnetTagNameListPub = System.getenv("PUBLIC_SUBNET_TAG_NAME_LIST");
         if (subnetCiderListPub == null || Objects.equals(subnetCiderListPub, "null")) {subnetCiderListPub = "10.1.0.0/24, 10.1.1.0/24, 10.1.2.0/24";}
         if (subnetTagNameListPub == null || Objects.equals(subnetTagNameListPub, "null")) {subnetTagNameListPub = "public_subnet_a, public_subnet_b, public_subnet_c"; }
-        ArrayList<Subnet> pubSubnetList = createThreeSubnetWithRouteTable(myvpc, subnetCiderListPub, subnetTagNameListPub, pubRT, ctx);
+        ArrayList<Subnet> pubSubnetList = SubnetCreator.createThreeSubnetWithRouteTable(myvpc, subnetCiderListPub, subnetTagNameListPub, pubRT, ctx);
 
         String subnetCiderListPriv = System.getenv("PRIV_SUBNET_CIDER_LIST");
         String subnetTagNameListPriv = System.getenv("PRIV_SUBNET_TAG_NAME_LIST");
         if (subnetCiderListPriv == null || Objects.equals(subnetCiderListPriv, "null")) {subnetCiderListPriv = "10.1.100.0/24, 10.1.101.0/24, 10.1.102.0/24";}
         if (subnetTagNameListPriv == null || Objects.equals(subnetTagNameListPriv, "null")) {subnetTagNameListPriv = "private_subnet_a, private_subnet_b, private_subnet_c"; }
-        ArrayList<Subnet> privSubnetList = createThreeSubnetWithRouteTable(myvpc, subnetCiderListPriv, subnetTagNameListPriv, privRT, ctx);
+        ArrayList<Subnet> privSubnetList = SubnetCreator.createThreeSubnetWithRouteTable(myvpc, subnetCiderListPriv, subnetTagNameListPriv, privRT, ctx);
 
+        // create parameter group, subnet group, spin up database
+        ParameterGroup parameterGroup = RdsCreator.createRDSParameterGroup();
+        List<String> privSubnetIdList = SubnetCreator.getSubnetIdListFromSubnets(privSubnetList);
+        SubnetGroup mySubnetGroup = SubnetCreator.createSubnetGroupRDS(privSubnetIdList);
+        com.pulumi.aws.rds.Instance rdsInstance = RdsCreator.createRDSInstance(parameterGroup, mySubnetGroup, dbSecurityGroup);
+
+        // fetch ami id from environment variable and pull up instance from this AMI
         String ami = System.getenv("AMI");
         if (ami == null || Objects.equals(ami, "null")) {ami = "ami-06e930d39870c0680";}
         String keyName = System.getenv("AWS_ACCESS_KEY_NAME");
@@ -84,51 +97,7 @@ public class Infrastructure {
 
 
 
-    public static ArrayList<Subnet> createThreeSubnetWithRouteTable(Vpc myvpc, String subnetCiderList, String subnetTagNameList, RouteTable rt, Context ctx) {
 
-        String[] ciderList = subnetCiderList.split(",\\s*");
-        ArrayList<String> listOfCider = new ArrayList<>(Arrays.asList(ciderList));
-
-        String[] nameList = subnetTagNameList.split(",\\s*");
-        ArrayList<String> listOfName = new ArrayList<>(Arrays.asList(nameList));
-
-        int numOfSubnets = listOfCider.size();
-        ArrayList<Subnet> subnetList = new ArrayList<>();
-
-        try {
-            final var available = AwsFunctions.getAvailabilityZonesPlain(GetAvailabilityZonesPlainArgs.builder()
-                    .state("available")
-                    .build());
-
-            final GetAvailabilityZonesResult getAvailabilityZonesResult = available.get();
-
-            final List<String> zoneNameList = getAvailabilityZonesResult.names();
-
-            if (numOfSubnets > zoneNameList.size()) {
-                numOfSubnets = zoneNameList.size();
-            }
-
-            for (int i = 0; i < numOfSubnets; i++) {
-
-                String subnetCiderBlockValue = listOfCider.get(i);
-                String subnetTagNameValue = listOfName.get(i);
-                final int zoneIndex = i;
-                Subnet mysubnet = new Subnet(subnetTagNameValue, SubnetArgs.builder()
-                        .tags(Map.of("Name", subnetTagNameValue))
-                        .vpcId(myvpc.id())
-                        .cidrBlock(subnetCiderBlockValue)
-                        .availabilityZone(zoneNameList.get(i))
-                        .mapPublicIpOnLaunch(true)
-                        .build());
-                associateRouteTableToSubnet(mysubnet, rt);
-                subnetList.add(mysubnet);
-            }
-        } catch (Exception e) {
-            ctx.log().error(e.getMessage());
-        }
-
-        return subnetList;
-    }
 
 
     private static RouteTable createRouteTable(Vpc myvpc, InternetGateway igw, String routeCidrBlockValue, String routeTableNameValue) {
@@ -152,26 +121,9 @@ public class Infrastructure {
                 .build());
     }
 
-    private static void associateRouteTableToSubnet(Subnet mysubnet, RouteTable rt) {
-        String randomName = generateRandomString(10);
-        new RouteTableAssociation(randomName, RouteTableAssociationArgs.builder()
-                    .subnetId(mysubnet.id())
-                    .routeTableId(rt.id())
-                    .build()
-        );
-    }
 
 
-    public static String generateRandomString(int length) {
-        final String ALPHABET = "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz";
-        SecureRandom random = new SecureRandom();
-        StringBuilder sb = new StringBuilder(length);
 
-        for (int i = 0; i < length; i++) {
-            sb.append(ALPHABET.charAt(random.nextInt(ALPHABET.length())));
-        }
 
-        return sb.toString();
-    }
 
 }
