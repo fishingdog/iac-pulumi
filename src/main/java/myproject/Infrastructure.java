@@ -9,6 +9,7 @@ import com.pulumi.aws.inputs.GetAvailabilityZonesPlainArgs;
 import com.pulumi.aws.outputs.GetAvailabilityZonesResult;
 import com.pulumi.aws.rds.ParameterGroup;
 import com.pulumi.aws.rds.SubnetGroup;
+import com.pulumi.core.Output;
 
 import java.lang.reflect.Array;
 import java.security.SecureRandom;
@@ -61,8 +62,9 @@ public class Infrastructure {
 
         // create parameter group, subnet group, spin up database
         ParameterGroup parameterGroup = RdsCreator.createRDSParameterGroup();
-        List<String> privSubnetIdList = SubnetCreator.getSubnetIdListFromSubnets(privSubnetList);
+        Output<List<String>> privSubnetIdList = SubnetCreator.getSubnetIdListFromSubnets(privSubnetList);
         SubnetGroup mySubnetGroup = SubnetCreator.createSubnetGroupRDS(privSubnetIdList);
+
         com.pulumi.aws.rds.Instance rdsInstance = RdsCreator.createRDSInstance(parameterGroup, mySubnetGroup, dbSecurityGroup);
 
         // fetch ami id from environment variable and pull up instance from this AMI
@@ -70,7 +72,7 @@ public class Infrastructure {
         if (ami == null || Objects.equals(ami, "null")) {ami = "ami-06e930d39870c0680";}
         String keyName = System.getenv("AWS_ACCESS_KEY_NAME");
         if (keyName == null || Objects.equals(keyName, "null")) {keyName = "testA5";}
-        Instance myInstance = CreateEC2Instance.createEC2Instance(appSecurityGroup, ami, pubSubnetList.get(0), keyName);
+        Instance myInstance = CreateEC2Instance.createEC2Instance(appSecurityGroup, ami, pubSubnetList.get(0), keyName, rdsInstance);
     }
 
     private static Vpc createVpc(String cidrBlockValue, String instanceTenancyValue, String tagNameValue) {
