@@ -7,6 +7,7 @@ import com.pulumi.aws.inputs.GetAvailabilityZonesPlainArgs;
 import com.pulumi.aws.outputs.GetAvailabilityZonesResult;
 import com.pulumi.aws.rds.SubnetGroup;
 import com.pulumi.aws.rds.SubnetGroupArgs;
+import com.pulumi.core.Output;
 
 import java.security.SecureRandom;
 import java.util.ArrayList;
@@ -17,7 +18,7 @@ import java.util.stream.Collectors;
 
 public class SubnetCreator {
 
-    public static SubnetGroup createSubnetGroupRDS(List<String> subnetIdList) {
+    public static SubnetGroup createSubnetGroupRDS(Output<List<String>> subnetIdList) {
         return new SubnetGroup("default", SubnetGroupArgs.builder()
                 .subnetIds(subnetIdList)
                 .tags(Map.of("Name", "My DB subnet group"))
@@ -91,11 +92,11 @@ public class SubnetCreator {
         return sb.toString();
     }
 
-    public static List<String> getSubnetIdListFromSubnets(ArrayList<Subnet> subnetList) {
-        List<String> subnetIdList = new ArrayList<>();
-        for (Subnet subnet : subnetList) {
-            subnetIdList.add(subnet.id().toString());
-        }
+    public static Output<List<String>> getSubnetIdListFromSubnets(ArrayList<Subnet> subnetList) {
+        Subnet subnetA = subnetList.get(0);
+        Subnet subnetB = subnetList.get(1);
+        var subnetIdList = Output.all(subnetA.id(), subnetB.id());
+
         return  subnetIdList;
     }
 }

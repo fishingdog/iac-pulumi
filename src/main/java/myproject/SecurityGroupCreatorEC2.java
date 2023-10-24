@@ -20,7 +20,7 @@ public class SecurityGroupCreatorEC2 {
                 .build());
 
         addIngressRules(appSecurityGroup);
-
+        addEgressRules(appSecurityGroup);
         return appSecurityGroup;
     }
 
@@ -64,7 +64,7 @@ public class SecurityGroupCreatorEC2 {
 
     private static void addEgressRules(SecurityGroup securityGroup) {
         // Example egress rule to allow all outbound traffic
-        new SecurityGroupEgressRule("allOutbound", SecurityGroupEgressRuleArgs.builder()
+        new SecurityGroupEgressRule("ec2Outbound", SecurityGroupEgressRuleArgs.builder()
                 .securityGroupId(securityGroup.id())
                 .ipProtocol("-1") // Represents all protocols
                 .fromPort(0)
