@@ -27,7 +27,7 @@ public class Infrastructure {
         Vpc myvpc = createVpc(vpcCidrBlockValue, vpcInstanceTenancyValue, vpcName);
 
         SecurityGroup appSecurityGroup = SecurityGroupCreatorEC2.createApplicationSecurityGroup(myvpc);
-        SecurityGroup dbSecurityGroup = SecurityGroupCreatorDB.createDatabaseSecurityGroup(myvpc);
+        SecurityGroup dbSecurityGroup = SecurityGroupCreatorDB.createDatabaseSecurityGroup(myvpc, appSecurityGroup);
 
         //create & attaching internet gateway to created VPC
         String igTagNameValue = System.getenv("IG_TAG_NAME");

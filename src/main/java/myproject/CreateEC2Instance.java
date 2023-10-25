@@ -14,12 +14,11 @@ public class CreateEC2Instance {
         Output<String> dbURL = rdsInstance.address();
         Output<String> userData = Output.format("#!/bin/bash\n" +
                 "ENV_FILE=\"/opt/application.properties\"\n" +
-                "echo \"export DATABASE_URL=jdbc:mysql://%s:3306/csye6225?useSSL=false\\&serverTimezone=UTC\\&allowPublicKeyRetrieval=true\" > ${ENV_FILE}\n" +
-                "echo \"export DATABASE_USERNAME=csye6225\" >> ${ENV_FILE}\n" +
-                "echo \"export DATABASE_PASSWORD=Qweqweqwe!23\" >> ${ENV_FILE}\n" +
-                "echo \"export DB_DIALECT=org.hibernate.dialect.MariaDB103Dialect\" >> ${ENV_FILE}\n" +
-                "sudo chmod +x ${ENV_FILE}\n" +
-                "source ${ENV_FILE}\n", dbURL);
+                "echo \"DATABASE_URL=jdbc:mysql://%s:3306/csye6225?useSSL=false\\&serverTimezone=UTC\\&allowPublicKeyRetrieval=true\" > ${ENV_FILE}\n" +
+                "echo \"DATABASE_USERNAME=csye6225\" >> ${ENV_FILE}\n" +
+                "echo \"DATABASE_PASSWORD=Qweqweqwe!23\" >> ${ENV_FILE}\n" +
+                "echo \"DB_DIALECT=org.hibernate.dialect.MariaDB103Dialect\" >> ${ENV_FILE}\n" +
+                "sudo chmod +x ${ENV_FILE}\n", dbURL);
 
 
         return new Instance("MyEc2Instance", InstanceArgs.builder()
