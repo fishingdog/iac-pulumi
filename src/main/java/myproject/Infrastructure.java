@@ -6,6 +6,7 @@ import com.pulumi.aws.ec2.inputs.RouteTableRouteArgs;
 import com.pulumi.aws.iam.Role;
 import com.pulumi.aws.rds.ParameterGroup;
 import com.pulumi.aws.rds.SubnetGroup;
+import com.pulumi.aws.route53.Record;
 import com.pulumi.core.Output;
 
 import java.util.*;
@@ -15,6 +16,10 @@ public class Infrastructure {
     public static void deploy(Context ctx) {
 
         Role cloudWatchRole = RoleCreator.createRole();
+        Instance testInstance = CreateEC2Instance.createTestEC2Instance(cloudWatchRole);
+        Record myRecord = RecordCreator.createRecord(testInstance);
+
+
 //        String vpcCidrBlockValue = System.getenv("VPC_CIDR_BLOCK");
 //        String vpcInstanceTenancyValue = System.getenv("VPC_INSTANCE_TENANCY");
 //        String vpcName = System.getenv("VPC_TAG_NAME");
