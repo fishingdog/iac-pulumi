@@ -21,6 +21,7 @@ public class RoleCreator {
 
         Role cloudWatchRole = new Role("instance", RoleArgs.builder()
                 .assumeRolePolicy(instanceAssumeRolePolicy.applyValue(GetPolicyDocumentResult::json))
+                .path("/")
                 .name("cloudWatchRole")
                 .build());
 
