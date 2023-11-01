@@ -56,7 +56,7 @@ public class CreateEC2Instance {
                 .keyName("testA5")
                 .rootBlockDevice(InstanceRootBlockDeviceArgs.builder()
                         .volumeType("gp2")
-                        .volumeSize(8)
+                        .volumeSize(20)
                         .deleteOnTermination(true)
                         .build())
                 .iamInstanceProfile(testProfile.name())
