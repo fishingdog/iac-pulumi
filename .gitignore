@@ -1,7 +1,7 @@
-# Compiled class file
+# Compiled class common-config.toml
 *.class
 
-# Log file
+# Log common-config.toml
 *.log
 
 # BlueJ files

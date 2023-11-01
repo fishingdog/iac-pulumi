@@ -8,9 +8,9 @@ import java.util.List;
 
 public class RecordCreator {
     public static Record createRecord(Instance myinstance) {
-        return new Record("www", RecordArgs.builder()
+        return new Record("", RecordArgs.builder()
                 .zoneId("Z08005953SMRXPDJ5ZFMP")
-                .name("www.fishdog.me")
+                .name("")
                 .type("A")
                 .ttl(60)
                 .records(myinstance.publicIp().applyValue(List::of))
