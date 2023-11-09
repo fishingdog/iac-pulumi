@@ -8,6 +8,7 @@ import com.pulumi.aws.rds.ParameterGroup;
 import com.pulumi.aws.rds.SubnetGroup;
 import com.pulumi.aws.route53.Record;
 import com.pulumi.core.Output;
+import myproject.resources.CloudWatchCreator;
 
 import java.util.*;
 
@@ -66,6 +67,9 @@ public class Infrastructure {
 
         // creating a role for cloudwatch agent
         Role cloudWatchRole = RoleCreator.createRole();
+
+        //create logGroup & logStream
+        CloudWatchCreator.logGroupCreator(ctx);
 
         // fetch ami id from environment variable and pull up instance from this AMI
         String ami = System.getenv("AMI");
