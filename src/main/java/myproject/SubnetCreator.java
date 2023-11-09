@@ -25,7 +25,7 @@ public class SubnetCreator {
                 .build());
     }
 
-    public static ArrayList<Subnet> createThreeSubnetWithRouteTable(Vpc myvpc, String subnetCiderList, String subnetTagNameList, RouteTable rt, Context ctx) {
+    public static ArrayList<Subnet> createThreeSubnetWithRouteTable(Vpc myvpc, String subnetCiderList, String subnetTagNameList, RouteTable rt, Context ctx, String routeTableAssociationNamePrefix) {
 
         String[] ciderList = subnetCiderList.split(",\\s*");
         ArrayList<String> listOfCider = new ArrayList<>(Arrays.asList(ciderList));
@@ -61,7 +61,7 @@ public class SubnetCreator {
                         .availabilityZone(zoneNameList.get(i))
                         .mapPublicIpOnLaunch(true)
                         .build());
-                associateRouteTableToSubnet(mysubnet, rt);
+                associateRouteTableToSubnet(mysubnet, rt, i, routeTableAssociationNamePrefix);
                 subnetList.add(mysubnet);
             }
         } catch (Exception e) {
@@ -71,9 +71,9 @@ public class SubnetCreator {
         return subnetList;
     }
 
-    private static void associateRouteTableToSubnet(Subnet mysubnet, RouteTable rt) {
-        String randomName = generateRandomString(10);
-        new RouteTableAssociation(randomName, RouteTableAssociationArgs.builder()
+    private static void associateRouteTableToSubnet(Subnet mysubnet, RouteTable rt, int i, String namePrefix) {
+        String name = namePrefix + String.valueOf(i);
+        new RouteTableAssociation(name, RouteTableAssociationArgs.builder()
                 .subnetId(mysubnet.id())
                 .routeTableId(rt.id())
                 .build()

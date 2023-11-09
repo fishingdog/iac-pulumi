@@ -49,13 +49,13 @@ public class Infrastructure {
         String subnetTagNameListPub = System.getenv("PUBLIC_SUBNET_TAG_NAME_LIST");
         if (subnetCiderListPub == null || Objects.equals(subnetCiderListPub, "null")) {subnetCiderListPub = "10.1.0.0/24, 10.1.1.0/24, 10.1.2.0/24";}
         if (subnetTagNameListPub == null || Objects.equals(subnetTagNameListPub, "null")) {subnetTagNameListPub = "public_subnet_a, public_subnet_b, public_subnet_c"; }
-        ArrayList<Subnet> pubSubnetList = SubnetCreator.createThreeSubnetWithRouteTable(myvpc, subnetCiderListPub, subnetTagNameListPub, pubRT, ctx);
+        ArrayList<Subnet> pubSubnetList = SubnetCreator.createThreeSubnetWithRouteTable(myvpc, subnetCiderListPub, subnetTagNameListPub, pubRT, ctx, "public");
 
         String subnetCiderListPriv = System.getenv("PRIV_SUBNET_CIDER_LIST");
         String subnetTagNameListPriv = System.getenv("PRIV_SUBNET_TAG_NAME_LIST");
         if (subnetCiderListPriv == null || Objects.equals(subnetCiderListPriv, "null")) {subnetCiderListPriv = "10.1.100.0/24, 10.1.101.0/24, 10.1.102.0/24";}
         if (subnetTagNameListPriv == null || Objects.equals(subnetTagNameListPriv, "null")) {subnetTagNameListPriv = "private_subnet_a, private_subnet_b, private_subnet_c"; }
-        ArrayList<Subnet> privSubnetList = SubnetCreator.createThreeSubnetWithRouteTable(myvpc, subnetCiderListPriv, subnetTagNameListPriv, privRT, ctx);
+        ArrayList<Subnet> privSubnetList = SubnetCreator.createThreeSubnetWithRouteTable(myvpc, subnetCiderListPriv, subnetTagNameListPriv, privRT, ctx, "private");
 
         // create parameter group, subnet group, spin up database
         ParameterGroup parameterGroup = RdsCreator.createRDSParameterGroup();
