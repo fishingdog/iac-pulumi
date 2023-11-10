@@ -1,4 +1,4 @@
-package myproject.resources;
+package myproject;
 
 import com.pulumi.Context;
 import com.pulumi.aws.cloudwatch.LogGroup;
@@ -10,7 +10,7 @@ import java.util.Map;
 
 public class CloudWatchCreator {
 
-    public static void logGroupCreator(Context ctx) {
+    public static void logGroupCreator() {
         var logGroup = new LogGroup("csye6225");
 
         var foo = new LogStream("webapp", LogStreamArgs.builder()

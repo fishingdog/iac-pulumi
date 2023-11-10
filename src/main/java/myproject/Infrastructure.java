@@ -8,7 +8,6 @@ import com.pulumi.aws.rds.ParameterGroup;
 import com.pulumi.aws.rds.SubnetGroup;
 import com.pulumi.aws.route53.Record;
 import com.pulumi.core.Output;
-import myproject.resources.CloudWatchCreator;
 
 import java.util.*;
 
@@ -69,7 +68,7 @@ public class Infrastructure {
         Role cloudWatchRole = RoleCreator.createRole();
 
         //create logGroup & logStream
-        CloudWatchCreator.logGroupCreator(ctx);
+        CloudWatchCreator.logGroupCreator();
 
         // fetch ami id from environment variable and pull up instance from this AMI
         String ami = System.getenv("AMI");
@@ -79,7 +78,9 @@ public class Infrastructure {
         Instance myInstance = CreateEC2Instance.createEC2Instance(appSecurityGroup, ami, pubSubnetList.get(0), keyName, rdsInstance, cloudWatchRole);
 
         // create "A record" and attach to the ec2 instance
-        Record myRecord = RecordCreator.createRecord(myInstance);
+        String domainName = System.getenv("MY_DOMAIN_NAME");
+        if (domainName == null || Objects.equals(domainName, "null")) {domainName = "dev.fishdog.me";}
+        Record myRecord = RecordCreator.createRecord(myInstance, domainName);
     }
 
     private static Vpc createVpc(String cidrBlockValue, String instanceTenancyValue, String tagNameValue) {
