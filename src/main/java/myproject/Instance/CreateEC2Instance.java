@@ -1,4 +1,4 @@
-package myproject;
+package myproject.Instance;
 
 
 import com.pulumi.aws.ec2.*;
@@ -73,26 +73,6 @@ public class CreateEC2Instance {
                 .userData(userData)
                 .iamInstanceProfile(myRoleInstanceProfile.name())
                 .tags(Map.of("Name", "MyEC2Instance"))
-                .build());
-    }
-
-    public static Instance createTestEC2Instance(Role myRole) {
-
-        InstanceProfile testProfile = new InstanceProfile("testProfile", InstanceProfileArgs.builder()
-                .role(myRole.name())
-                .build());
-
-        return new Instance("MyEc2Instance", InstanceArgs.builder()
-                .ami("ami-0b6edd8449255b799")
-                .instanceType("t2.micro")
-                .keyName("testA5")
-                .rootBlockDevice(InstanceRootBlockDeviceArgs.builder()
-                        .volumeType("gp2")
-                        .volumeSize(20)
-                        .deleteOnTermination(true)
-                        .build())
-                .iamInstanceProfile(testProfile.name())
-                .tags(Map.of("Name", "MyTestEC2Instance"))
                 .build());
     }
 }

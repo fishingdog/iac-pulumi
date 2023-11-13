@@ -8,6 +8,13 @@ import com.pulumi.aws.rds.ParameterGroup;
 import com.pulumi.aws.rds.SubnetGroup;
 import com.pulumi.aws.route53.Record;
 import com.pulumi.core.Output;
+import myproject.CloudWatch.CloudWatchCreator;
+import myproject.CloudWatch.RoleCreator;
+import myproject.Instance.CreateEC2Instance;
+import myproject.Instance.RdsCreator;
+import myproject.SecurityGroup.SecurityGroupCreatorDB;
+import myproject.SecurityGroup.SecurityGroupCreatorEC2;
+import myproject.SecurityGroup.SecurityGroupCreatorLoadBalancer;
 
 import java.util.*;
 
@@ -23,7 +30,8 @@ public class Infrastructure {
         if (vpcName == null || Objects.equals(vpcName, "null")) {vpcName = "myVpc";}
         Vpc myvpc = createVpc(vpcCidrBlockValue, vpcInstanceTenancyValue, vpcName);
 
-        SecurityGroup appSecurityGroup = SecurityGroupCreatorEC2.createApplicationSecurityGroup(myvpc);
+        SecurityGroup lBSecurityGroup = SecurityGroupCreatorLoadBalancer.createLoadBalancerSecurityGroup(myvpc);
+        SecurityGroup appSecurityGroup = SecurityGroupCreatorEC2.createApplicationSecurityGroup(myvpc, lBSecurityGroup);
         SecurityGroup dbSecurityGroup = SecurityGroupCreatorDB.createDatabaseSecurityGroup(myvpc, appSecurityGroup);
 
         //create & attaching internet gateway to created VPC

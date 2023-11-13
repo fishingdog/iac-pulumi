@@ -1,4 +1,4 @@
-package myproject;
+package myproject.Instance;
 
 
 import com.pulumi.aws.ec2.SecurityGroup;
