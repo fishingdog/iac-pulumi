@@ -1,4 +1,4 @@
-package myproject;
+package myproject.SecurityGroup;
 
 import com.pulumi.aws.ec2.SecurityGroup;
 import com.pulumi.aws.ec2.SecurityGroupArgs;
@@ -12,19 +12,19 @@ import com.pulumi.aws.vpc.SecurityGroupIngressRuleArgs;
 import java.util.Map;
 public class SecurityGroupCreatorEC2 {
 
-    public static SecurityGroup createApplicationSecurityGroup(Vpc myvpc) {
+    public static SecurityGroup createApplicationSecurityGroup(Vpc myvpc, SecurityGroup loadBalancerSecurityGroup) {
         SecurityGroup appSecurityGroup = new SecurityGroup("appSecurityGroup", SecurityGroupArgs.builder()
                 .vpcId(myvpc.id())
-                .description("Application security group for EC2 instances")
-                .tags(Map.of("Name", "application_security_group"))
+                .description("app security group for EC2 instances")
+                .tags(Map.of("Name", "app_security_group"))
                 .build());
 
-        addIngressRules(appSecurityGroup);
+        addIngressRules(appSecurityGroup, loadBalancerSecurityGroup);
         addEgressRules(appSecurityGroup);
-        return appSecurityGroup;
+        return loadBalancerSecurityGroup;
     }
 
-    private static void addIngressRules(SecurityGroup securityGroup) {
+    private static void addIngressRules(SecurityGroup securityGroup, SecurityGroup loadBalancerSecurityGroup) {
         // Allow SSH
         new SecurityGroupIngressRule("sshIngress", SecurityGroupIngressRuleArgs.builder()
                 .securityGroupId(securityGroup.id())
@@ -34,31 +34,13 @@ public class SecurityGroupCreatorEC2 {
                 .cidrIpv4("0.0.0.0/0")
                 .build());
 
-        // Allow HTTP
-        new SecurityGroupIngressRule("httpIngress", SecurityGroupIngressRuleArgs.builder()
-                .securityGroupId(securityGroup.id())
-                .ipProtocol("tcp")
-                .fromPort(80)
-                .toPort(80)
-                .cidrIpv4("0.0.0.0/0")
-                .build());
-
-        // Allow HTTPS
-        new SecurityGroupIngressRule("httpsIngress", SecurityGroupIngressRuleArgs.builder()
-                .securityGroupId(securityGroup.id())
-                .ipProtocol("tcp")
-                .fromPort(443)
-                .toPort(443)
-                .cidrIpv4("0.0.0.0/0")
-                .build());
-
         // Allow webapp on 8080
         new SecurityGroupIngressRule("webIngress", SecurityGroupIngressRuleArgs.builder()
                 .securityGroupId(securityGroup.id())
                 .ipProtocol("tcp")
                 .fromPort(8080)
                 .toPort(8080)
-                .cidrIpv4("0.0.0.0/0")
+                .referencedSecurityGroupId(loadBalancerSecurityGroup.id())
                 .build());
     }
 

@@ -1,4 +1,4 @@
-package myproject;
+package myproject.CloudWatch;
 
 import com.pulumi.Context;
 import com.pulumi.aws.cloudwatch.LogGroup;

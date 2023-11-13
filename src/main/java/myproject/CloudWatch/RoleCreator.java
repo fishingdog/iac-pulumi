@@ -1,4 +1,4 @@
-package myproject;
+package myproject.CloudWatch;
 
 import com.pulumi.aws.iam.*;
 import com.pulumi.aws.iam.inputs.GetPolicyDocumentArgs;
