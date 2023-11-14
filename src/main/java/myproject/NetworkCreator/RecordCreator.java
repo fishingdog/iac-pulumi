@@ -1,4 +1,4 @@
-package myproject;
+package myproject.NetworkCreator;
 
 import com.pulumi.aws.ec2.Instance;
 import com.pulumi.aws.route53.Record;
