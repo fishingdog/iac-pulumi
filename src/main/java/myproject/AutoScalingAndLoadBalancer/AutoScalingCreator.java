@@ -1,4 +1,4 @@
-package myproject.AutoScaling;
+package myproject.AutoScalingAndLoadBalancer;
 
 import com.pulumi.aws.alb.TargetGroup;
 import com.pulumi.aws.autoscaling.Group;

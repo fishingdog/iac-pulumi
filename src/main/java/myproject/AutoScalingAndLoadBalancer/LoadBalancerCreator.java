@@ -1,10 +1,10 @@
+package myproject.AutoScalingAndLoadBalancer;
+
 import com.pulumi.aws.alb.*;
 import com.pulumi.aws.alb.inputs.ListenerDefaultActionArgs;
 import com.pulumi.aws.ec2.Vpc;
 import com.pulumi.core.Output;
-import com.pulumi.aws.autoscaling.Group;
 
-import java.lang.annotation.Target;
 import java.util.List;
 
 public class LoadBalancerCreator {

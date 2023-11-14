@@ -1,6 +1,9 @@
 package myproject;
 
 import com.pulumi.Context;
+import com.pulumi.aws.alb.Listener;
+import com.pulumi.aws.alb.LoadBalancer;
+import com.pulumi.aws.alb.TargetGroup;
 import com.pulumi.aws.autoscaling.Group;
 import com.pulumi.aws.autoscaling.Policy;
 import com.pulumi.aws.cloudwatch.MetricAlarm;
@@ -8,25 +11,20 @@ import com.pulumi.aws.ec2.*;
 import com.pulumi.aws.iam.Role;
 import com.pulumi.aws.rds.ParameterGroup;
 import com.pulumi.aws.rds.SubnetGroup;
+import com.pulumi.aws.route53.Record;
 import com.pulumi.core.Output;
-import myproject.AutoScaling.AutoScalingCreator;
-import myproject.AutoScaling.LaunchTemplateCreator;
+import myproject.AutoScalingAndLoadBalancer.AutoScalingCreator;
+import myproject.AutoScalingAndLoadBalancer.LaunchTemplateCreator;
+import myproject.AutoScalingAndLoadBalancer.LoadBalancerCreator;
 import myproject.CloudWatch.CloudWatchCreator;
 import myproject.CloudWatch.RoleCreator;
 import myproject.Instance.RdsCreator;
-import myproject.NetworkCreator.SubnetCreator;
+import myproject.NetworkCreator.*;
 import myproject.SecurityGroup.SecurityGroupCreatorDB;
 import myproject.SecurityGroup.SecurityGroupCreatorEC2;
 import myproject.SecurityGroup.SecurityGroupCreatorLoadBalancer;
 
 import java.util.*;
-
-import static myproject.NetworkCreator.InternetGatewayCreator.attachInternetGateway;
-import static myproject.NetworkCreator.InternetGatewayCreator.createInternetGateway;
-import static myproject.NetworkCreator.RouteTableCreator.createPrivateRouteTable;
-import static myproject.NetworkCreator.RouteTableCreator.createRouteTable;
-import static myproject.NetworkCreator.VPCCreator.createVpc;
-
 
 public class Infrastructure {
     public static void deploy(Context ctx) {
@@ -37,7 +35,7 @@ public class Infrastructure {
         if (vpcCidrBlockValue == null || Objects.equals(vpcCidrBlockValue, "null")) {vpcCidrBlockValue = "10.1.0.0/16";}
         if (vpcInstanceTenancyValue == null || Objects.equals(vpcInstanceTenancyValue, "null")) {vpcInstanceTenancyValue = "default";}
         if (vpcName == null || Objects.equals(vpcName, "null")) {vpcName = "myVpc";}
-        Vpc myvpc = createVpc(vpcCidrBlockValue, vpcInstanceTenancyValue, vpcName);
+        Vpc myvpc = VPCCreator.createVpc(vpcCidrBlockValue, vpcInstanceTenancyValue, vpcName);
 
         SecurityGroup lBSecurityGroup = SecurityGroupCreatorLoadBalancer.createLoadBalancerSecurityGroup(myvpc);
         SecurityGroup appSecurityGroup = SecurityGroupCreatorEC2.createApplicationSecurityGroup(myvpc, lBSecurityGroup);
@@ -46,20 +44,20 @@ public class Infrastructure {
         //create & attaching internet gateway to created VPC
         String igTagNameValue = System.getenv("IG_TAG_NAME");
         if (igTagNameValue == null || Objects.equals(igTagNameValue, "null")) {igTagNameValue = "myGW";}
-        InternetGateway igw = createInternetGateway(igTagNameValue);
+        InternetGateway igw = InternetGatewayCreator.createInternetGateway(igTagNameValue);
 
-        attachInternetGateway(myvpc, igw);
+        InternetGatewayCreator.attachInternetGateway(myvpc, igw);
 
         // Create public & private routing tables
         String routeCidrBlockValue = System.getenv("RT_ROUTE_CIDR_BLOCK");
         String routePublicTableNameValue = System.getenv("RT_PUBLIC_ROUTE_TABLE_NAME");
         if (routeCidrBlockValue == null || Objects.equals(routeCidrBlockValue, "null")) {routeCidrBlockValue = "0.0.0.0/0";}
         if (routePublicTableNameValue == null || Objects.equals(routePublicTableNameValue, "null")) {routePublicTableNameValue = "default_pub_route_table";}
-        RouteTable pubRT = createRouteTable(myvpc, igw, routeCidrBlockValue, routePublicTableNameValue);
+        RouteTable pubRT = RouteTableCreator.createRouteTable(myvpc, igw, routeCidrBlockValue, routePublicTableNameValue);
 
         String routePrivateTableNameValue = System.getenv("RT_PRIVATE_ROUTE_TABLE_NAME");
         if (routePrivateTableNameValue == null || Objects.equals(routePrivateTableNameValue, "null")) {routePrivateTableNameValue = "default_private_route_table";}
-        RouteTable privRT = createPrivateRouteTable(myvpc, routePrivateTableNameValue);
+        RouteTable privRT = RouteTableCreator.createPrivateRouteTable(myvpc, routePrivateTableNameValue);
 
         // create 3 public subnets & 3 private subnets in the VPC created
         String subnetCiderListPub = System.getenv("PUBLIC_SUBNET_CIDER_LIST");
@@ -94,8 +92,17 @@ public class Infrastructure {
         if (keyName == null || Objects.equals(keyName, "null")) {keyName = "testA5";}
         LaunchTemplate launchTemplate = LaunchTemplateCreator.createLaunchTemplate(ami, keyName, rdsInstance, cloudWatchRole, appSecurityGroup);
 
+        // Create target Group for Load Balancer
+        TargetGroup targetGroup = LoadBalancerCreator.targetGroupCreator(myvpc);
+
+        // Create Load Balancer
+        LoadBalancer appLoadBalancer = LoadBalancerCreator.createApplicationLoadBalancer(privSubnetIdList);
+
+        // Create Listener for Load Balancer
+        Listener listener = LoadBalancerCreator.listenerCreator(appLoadBalancer, targetGroup);
+
         // create auto-scaling group
-        Group autoScalingGroup = AutoScalingCreator.createAutoScalingGroup(launchTemplate);
+        Group autoScalingGroup = AutoScalingCreator.createAutoScalingGroup(launchTemplate, targetGroup);
 
         // create Auto Scaling Policies and MetricAlarms
         Policy autoScalingUpPolicy = AutoScalingCreator.createAutoScalingUpPolicy(autoScalingGroup);
@@ -104,6 +111,10 @@ public class Infrastructure {
         Policy autoScalingDownPolicy = AutoScalingCreator.createAutoScalingDownPolicy(autoScalingGroup);
         MetricAlarm autoScalingDownMetricAlarm = AutoScalingCreator.createAutoScalingDownMetricAlarm(autoScalingDownPolicy);
 
+        // create "A record" and attach to the load balancer
+        String domainName = System.getenv("MY_DOMAIN_NAME");
+        if (domainName == null || Objects.equals(domainName, "null")) {domainName = "dev.fishdog.me";}
+        Record myRecord = RecordCreator.createRecord(appLoadBalancer, domainName);
 
 //        // fetch ami id from environment variable and pull up instance from this AMI
 //        String ami = System.getenv("AMI");
