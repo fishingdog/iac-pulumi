@@ -1,6 +1,9 @@
 package myproject;
 
 import com.pulumi.Context;
+import com.pulumi.aws.autoscaling.Group;
+import com.pulumi.aws.autoscaling.Policy;
+import com.pulumi.aws.cloudwatch.MetricAlarm;
 import com.pulumi.aws.ec2.*;
 import com.pulumi.aws.ec2.inputs.RouteTableRouteArgs;
 import com.pulumi.aws.iam.Role;
@@ -8,6 +11,7 @@ import com.pulumi.aws.rds.ParameterGroup;
 import com.pulumi.aws.rds.SubnetGroup;
 import com.pulumi.aws.route53.Record;
 import com.pulumi.core.Output;
+import myproject.AutoScaling.AutoScalingCreator;
 import myproject.CloudWatch.CloudWatchCreator;
 import myproject.CloudWatch.RoleCreator;
 import myproject.Instance.CreateEC2Instance;
@@ -75,20 +79,38 @@ public class Infrastructure {
         // creating a role for cloudwatch agent
         Role cloudWatchRole = RoleCreator.createRole();
 
-        //create logGroup & logStream
+        // create logGroup & logStream
         CloudWatchCreator.logGroupCreator();
 
-        // fetch ami id from environment variable and pull up instance from this AMI
+        // create Launch template
         String ami = System.getenv("AMI");
         if (ami == null || Objects.equals(ami, "null")) {ami = "ami-06e930d39870c0680";}
         String keyName = System.getenv("AWS_ACCESS_KEY_NAME");
         if (keyName == null || Objects.equals(keyName, "null")) {keyName = "testA5";}
-        Instance myInstance = CreateEC2Instance.createEC2Instance(appSecurityGroup, ami, pubSubnetList.get(0), keyName, rdsInstance, cloudWatchRole);
+        LaunchTemplate launchTemplate = LaunchTemplateCreator.createLaunchTemplate(ami, keyName, rdsInstance, cloudWatchRole, appSecurityGroup);
 
-        // create "A record" and attach to the ec2 instance
-        String domainName = System.getenv("MY_DOMAIN_NAME");
-        if (domainName == null || Objects.equals(domainName, "null")) {domainName = "dev.fishdog.me";}
-        Record myRecord = RecordCreator.createRecord(myInstance, domainName);
+        // create auto-scaling group
+        Group autoScalingGroup = AutoScalingCreator.createAutoScalingGroup(launchTemplate);
+
+        // create Auto Scaling Policies and MetricAlarms
+        Policy autoScalingUpPolicy = AutoScalingCreator.createAutoScalingUpPolicy(autoScalingGroup);
+        MetricAlarm autoScalingUpMetricAlarm = AutoScalingCreator.createAutoScalingUpMetricAlarm(autoScalingUpPolicy);
+
+        Policy autoScalingDownPolicy = AutoScalingCreator.createAutoScalingDownPolicy(autoScalingGroup);
+        MetricAlarm autoScalingDownMetricAlarm = AutoScalingCreator.createAutoScalingDownMetricAlarm(autoScalingDownPolicy);
+
+
+//        // fetch ami id from environment variable and pull up instance from this AMI
+//        String ami = System.getenv("AMI");
+//        if (ami == null || Objects.equals(ami, "null")) {ami = "ami-06e930d39870c0680";}
+//        String keyName = System.getenv("AWS_ACCESS_KEY_NAME");
+//        if (keyName == null || Objects.equals(keyName, "null")) {keyName = "testA5";}
+//        Instance myInstance = CreateEC2Instance.createEC2Instance(appSecurityGroup, ami, pubSubnetList.get(0), keyName, rdsInstance, cloudWatchRole);
+
+//        // create "A record" and attach to the ec2 instance
+//        String domainName = System.getenv("MY_DOMAIN_NAME");
+//        if (domainName == null || Objects.equals(domainName, "null")) {domainName = "dev.fishdog.me";}
+//        Record myRecord = RecordCreator.createRecord(myInstance, domainName);
     }
 
     private static Vpc createVpc(String cidrBlockValue, String instanceTenancyValue, String tagNameValue) {
