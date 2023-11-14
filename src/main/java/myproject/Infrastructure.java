@@ -5,22 +5,27 @@ import com.pulumi.aws.autoscaling.Group;
 import com.pulumi.aws.autoscaling.Policy;
 import com.pulumi.aws.cloudwatch.MetricAlarm;
 import com.pulumi.aws.ec2.*;
-import com.pulumi.aws.ec2.inputs.RouteTableRouteArgs;
 import com.pulumi.aws.iam.Role;
 import com.pulumi.aws.rds.ParameterGroup;
 import com.pulumi.aws.rds.SubnetGroup;
-import com.pulumi.aws.route53.Record;
 import com.pulumi.core.Output;
 import myproject.AutoScaling.AutoScalingCreator;
+import myproject.AutoScaling.LaunchTemplateCreator;
 import myproject.CloudWatch.CloudWatchCreator;
 import myproject.CloudWatch.RoleCreator;
-import myproject.Instance.CreateEC2Instance;
 import myproject.Instance.RdsCreator;
+import myproject.NetworkCreator.SubnetCreator;
 import myproject.SecurityGroup.SecurityGroupCreatorDB;
 import myproject.SecurityGroup.SecurityGroupCreatorEC2;
 import myproject.SecurityGroup.SecurityGroupCreatorLoadBalancer;
 
 import java.util.*;
+
+import static myproject.NetworkCreator.InternetGatewayCreator.attachInternetGateway;
+import static myproject.NetworkCreator.InternetGatewayCreator.createInternetGateway;
+import static myproject.NetworkCreator.RouteTableCreator.createPrivateRouteTable;
+import static myproject.NetworkCreator.RouteTableCreator.createRouteTable;
+import static myproject.NetworkCreator.VPCCreator.createVpc;
 
 
 public class Infrastructure {
@@ -111,54 +116,6 @@ public class Infrastructure {
 //        String domainName = System.getenv("MY_DOMAIN_NAME");
 //        if (domainName == null || Objects.equals(domainName, "null")) {domainName = "dev.fishdog.me";}
 //        Record myRecord = RecordCreator.createRecord(myInstance, domainName);
-    }
-
-    private static Vpc createVpc(String cidrBlockValue, String instanceTenancyValue, String tagNameValue) {
-        return new Vpc("main", VpcArgs.builder()
-                .cidrBlock(cidrBlockValue)
-                .instanceTenancy(instanceTenancyValue)
-                .tags(Map.of("Name", tagNameValue))
-                .build());
-    }
-
-
-    private static InternetGateway createInternetGateway(String tagNameValue) {
-        return new InternetGateway("gw", InternetGatewayArgs.builder()
-                .tags(Map.of("Name", tagNameValue))
-                .build());
-    }
-
-    private static void attachInternetGateway(Vpc myvpc, InternetGateway gw) {
-        new InternetGatewayAttachment("InternetGatewayAttachment", InternetGatewayAttachmentArgs.builder()
-                .internetGatewayId(gw.id())
-                .vpcId(myvpc.id())
-                .build());
-    }
-
-
-
-
-
-
-    private static RouteTable createRouteTable(Vpc myvpc, InternetGateway igw, String routeCidrBlockValue, String routeTableNameValue) {
-
-        return new RouteTable("testRouteTable", RouteTableArgs.builder()
-                .vpcId(myvpc.id())
-                .routes(RouteTableRouteArgs.builder()
-                        .cidrBlock(routeCidrBlockValue)
-                        .gatewayId(igw.id())
-                        .build())
-                .tags(Map.of("Name", routeTableNameValue))
-                .build());
-    }
-
-
-    private static RouteTable createPrivateRouteTable(Vpc myvpc, String routePrivateTableNameValue) {
-
-        return new RouteTable("privateRouteTable", RouteTableArgs.builder()
-                .vpcId(myvpc.id())
-                .tags(Map.of("Name", routePrivateTableNameValue))
-                .build());
     }
 
 }

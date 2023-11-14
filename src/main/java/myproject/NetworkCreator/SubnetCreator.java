@@ -1,4 +1,4 @@
-package myproject;
+package myproject.NetworkCreator;
 
 import com.pulumi.Context;
 import com.pulumi.aws.AwsFunctions;

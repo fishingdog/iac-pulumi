@@ -1,4 +1,4 @@
-package myproject;
+package myproject.AutoScaling;
 
 import com.pulumi.aws.ec2.LaunchTemplate;
 import com.pulumi.aws.ec2.LaunchTemplateArgs;
