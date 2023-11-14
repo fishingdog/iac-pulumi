@@ -1,4 +1,4 @@
-package myproject.AutoScaling;
+package myproject.AutoScalingAndLoadBalancer;
 
 import com.pulumi.aws.ec2.LaunchTemplate;
 import com.pulumi.aws.ec2.LaunchTemplateArgs;
