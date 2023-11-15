@@ -24,7 +24,6 @@ public class RecordCreator {
                 .zoneId(selected.applyValue(GetZoneResult::zoneId))
                 .name("www")
                 .type("A")
-                .ttl(60)
                 .aliases(RecordAliasArgs.builder()
                         .name(appLoadBalancer.dnsName())
                         .zoneId(appLoadBalancer.zoneId())

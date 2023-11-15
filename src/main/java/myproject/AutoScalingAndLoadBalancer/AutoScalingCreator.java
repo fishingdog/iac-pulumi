@@ -18,7 +18,7 @@ public class AutoScalingCreator {
 
     public static Group createAutoScalingGroup(LaunchTemplate launchTemplate, TargetGroup targetGroup) {
 
-        return new Group("bar", GroupArgs.builder()
+        return new Group("myAutoScalingGroup", GroupArgs.builder()
                 .availabilityZones("us-west-2a")
                 .maxSize(3)
                 .minSize(1)

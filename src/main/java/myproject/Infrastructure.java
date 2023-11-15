@@ -65,6 +65,7 @@ public class Infrastructure {
         if (subnetCiderListPub == null || Objects.equals(subnetCiderListPub, "null")) {subnetCiderListPub = "10.1.0.0/24, 10.1.1.0/24, 10.1.2.0/24";}
         if (subnetTagNameListPub == null || Objects.equals(subnetTagNameListPub, "null")) {subnetTagNameListPub = "public_subnet_a, public_subnet_b, public_subnet_c"; }
         ArrayList<Subnet> pubSubnetList = SubnetCreator.createThreeSubnetWithRouteTable(myvpc, subnetCiderListPub, subnetTagNameListPub, pubRT, ctx, "public");
+        Output<List<String>> pubSubnetIdList = SubnetCreator.getSubnetIdListFromSubnets(pubSubnetList);
 
         String subnetCiderListPriv = System.getenv("PRIV_SUBNET_CIDER_LIST");
         String subnetTagNameListPriv = System.getenv("PRIV_SUBNET_TAG_NAME_LIST");
@@ -96,7 +97,7 @@ public class Infrastructure {
         TargetGroup targetGroup = LoadBalancerCreator.targetGroupCreator(myvpc);
 
         // Create Load Balancer
-        LoadBalancer appLoadBalancer = LoadBalancerCreator.createApplicationLoadBalancer(privSubnetIdList);
+        LoadBalancer appLoadBalancer = LoadBalancerCreator.createApplicationLoadBalancer(pubSubnetIdList);
 
         // Create Listener for Load Balancer
         Listener listener = LoadBalancerCreator.listenerCreator(appLoadBalancer, targetGroup);

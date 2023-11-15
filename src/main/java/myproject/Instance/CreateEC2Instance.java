@@ -8,6 +8,7 @@ import com.pulumi.aws.iam.InstanceProfileArgs;
 import com.pulumi.aws.iam.Role;
 import com.pulumi.core.Output;
 
+import java.util.Base64;
 import java.util.List;
 import java.util.Map;
 
@@ -70,7 +71,9 @@ public class CreateEC2Instance {
                         .volumeSize(25)
                         .deleteOnTermination(true)
                         .build())
-                .userData(userData)
+                .userData(userData.applyValue(i -> {
+                    return Base64.getEncoder().encodeToString(i.getBytes());
+                }))
                 .iamInstanceProfile(myRoleInstanceProfile.name())
                 .tags(Map.of("Name", "MyEC2Instance"))
                 .build());
