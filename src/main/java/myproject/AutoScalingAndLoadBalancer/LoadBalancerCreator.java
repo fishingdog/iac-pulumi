@@ -2,16 +2,17 @@ package myproject.AutoScalingAndLoadBalancer;
 
 import com.pulumi.aws.alb.*;
 import com.pulumi.aws.alb.inputs.ListenerDefaultActionArgs;
+import com.pulumi.aws.alb.inputs.TargetGroupTargetHealthStateArgs;
 import com.pulumi.aws.ec2.Vpc;
 import com.pulumi.core.Output;
 
 import java.util.List;
 
 public class LoadBalancerCreator {
-    public static LoadBalancer createApplicationLoadBalancer(Output<List<String>> privSubnetIdList) {
+    public static LoadBalancer createApplicationLoadBalancer(Output<List<String>> pubSubnetIdList) {
         return new LoadBalancer("myAlb", LoadBalancerArgs.builder()
                 .loadBalancerType("application")
-                .subnets(privSubnetIdList)
+                .subnets(pubSubnetIdList)
                 .build());
     }
 
