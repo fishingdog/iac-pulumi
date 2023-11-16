@@ -2,17 +2,22 @@ package myproject.AutoScalingAndLoadBalancer;
 
 import com.pulumi.aws.alb.*;
 import com.pulumi.aws.alb.inputs.ListenerDefaultActionArgs;
-import com.pulumi.aws.alb.inputs.TargetGroupTargetHealthStateArgs;
+import com.pulumi.aws.alb.inputs.TargetGroupHealthCheckArgs;
+import com.pulumi.aws.ec2.SecurityGroup;
 import com.pulumi.aws.ec2.Vpc;
 import com.pulumi.core.Output;
 
+import java.lang.annotation.Target;
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 public class LoadBalancerCreator {
-    public static LoadBalancer createApplicationLoadBalancer(Output<List<String>> pubSubnetIdList) {
+    public static LoadBalancer createApplicationLoadBalancer(Output<List<String>> pubSubnetIdList, SecurityGroup lbSecurityGroup) {
         return new LoadBalancer("myAlb", LoadBalancerArgs.builder()
                 .loadBalancerType("application")
                 .subnets(pubSubnetIdList)
+                .securityGroups(lbSecurityGroup.id().applyValue(List::of))
                 .build());
     }
 
@@ -21,6 +26,16 @@ public class LoadBalancerCreator {
                 .port(8080)
                 .protocol("HTTP")
                 .vpcId(myvpc.id())
+                .healthCheck(TargetGroupHealthCheckArgs.builder()
+                        .enabled(true)
+                        .interval(30)
+                        .unhealthyThreshold(5)
+                        .timeout(10)
+                        .healthyThreshold(2)
+                        .matcher("200")
+                        .path("/healthz")
+                        .protocol("HTTP")
+                        .build())
                 .build());
     }
 

@@ -13,6 +13,7 @@ import com.pulumi.aws.rds.ParameterGroup;
 import com.pulumi.aws.rds.SubnetGroup;
 import com.pulumi.aws.route53.Record;
 import com.pulumi.core.Output;
+import com.pulumi.resources.CustomResourceOptions;
 import myproject.AutoScalingAndLoadBalancer.AutoScalingCreator;
 import myproject.AutoScalingAndLoadBalancer.LaunchTemplateCreator;
 import myproject.AutoScalingAndLoadBalancer.LoadBalancerCreator;
@@ -29,12 +30,20 @@ import java.util.*;
 public class Infrastructure {
     public static void deploy(Context ctx) {
 
+
+
         String vpcCidrBlockValue = System.getenv("VPC_CIDR_BLOCK");
         String vpcInstanceTenancyValue = System.getenv("VPC_INSTANCE_TENANCY");
-        String vpcName = System.getenv("VPC_TAG_NAME");
-        if (vpcCidrBlockValue == null || Objects.equals(vpcCidrBlockValue, "null")) {vpcCidrBlockValue = "10.1.0.0/16";}
-        if (vpcInstanceTenancyValue == null || Objects.equals(vpcInstanceTenancyValue, "null")) {vpcInstanceTenancyValue = "default";}
-        if (vpcName == null || Objects.equals(vpcName, "null")) {vpcName = "myVpc";}
+            String vpcName = System.getenv("VPC_TAG_NAME");
+        if (vpcCidrBlockValue == null || Objects.equals(vpcCidrBlockValue, "null")) {
+            vpcCidrBlockValue = "10.1.0.0/16";
+        }
+        if (vpcInstanceTenancyValue == null || Objects.equals(vpcInstanceTenancyValue, "null")) {
+            vpcInstanceTenancyValue = "default";
+        }
+        if (vpcName == null || Objects.equals(vpcName, "null")) {
+            vpcName = "myVpc";
+        }
         Vpc myvpc = VPCCreator.createVpc(vpcCidrBlockValue, vpcInstanceTenancyValue, vpcName);
 
         SecurityGroup lBSecurityGroup = SecurityGroupCreatorLoadBalancer.createLoadBalancerSecurityGroup(myvpc);
@@ -93,17 +102,16 @@ public class Infrastructure {
         if (keyName == null || Objects.equals(keyName, "null")) {keyName = "testA5";}
         LaunchTemplate launchTemplate = LaunchTemplateCreator.createLaunchTemplate(ami, keyName, rdsInstance, cloudWatchRole, appSecurityGroup);
 
-        // Create target Group for Load Balancer
         TargetGroup targetGroup = LoadBalancerCreator.targetGroupCreator(myvpc);
 
         // Create Load Balancer
-        LoadBalancer appLoadBalancer = LoadBalancerCreator.createApplicationLoadBalancer(pubSubnetIdList);
+        LoadBalancer appLoadBalancer = LoadBalancerCreator.createApplicationLoadBalancer(pubSubnetIdList, lBSecurityGroup);
 
         // Create Listener for Load Balancer
         Listener listener = LoadBalancerCreator.listenerCreator(appLoadBalancer, targetGroup);
 
         // create auto-scaling group
-        Group autoScalingGroup = AutoScalingCreator.createAutoScalingGroup(launchTemplate, targetGroup);
+        Group autoScalingGroup = AutoScalingCreator.createAutoScalingGroup(launchTemplate, targetGroup, pubSubnetIdList);
 
         // create Auto Scaling Policies and MetricAlarms
         Policy autoScalingUpPolicy = AutoScalingCreator.createAutoScalingUpPolicy(autoScalingGroup);
