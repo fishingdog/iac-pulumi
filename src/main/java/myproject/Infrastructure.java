@@ -115,10 +115,10 @@ public class Infrastructure {
 
         // create Auto Scaling Policies and MetricAlarms
         Policy autoScalingUpPolicy = AutoScalingCreator.createAutoScalingUpPolicy(autoScalingGroup);
-        MetricAlarm autoScalingUpMetricAlarm = AutoScalingCreator.createAutoScalingUpMetricAlarm(autoScalingUpPolicy);
+        MetricAlarm autoScalingUpMetricAlarm = AutoScalingCreator.createAutoScalingUpMetricAlarm(autoScalingUpPolicy, autoScalingGroup);
 
         Policy autoScalingDownPolicy = AutoScalingCreator.createAutoScalingDownPolicy(autoScalingGroup);
-        MetricAlarm autoScalingDownMetricAlarm = AutoScalingCreator.createAutoScalingDownMetricAlarm(autoScalingDownPolicy);
+        MetricAlarm autoScalingDownMetricAlarm = AutoScalingCreator.createAutoScalingDownMetricAlarm(autoScalingDownPolicy, autoScalingGroup);
 
         // create "A record" and attach to the load balancer
         String domainName = System.getenv("MY_DOMAIN_NAME");
