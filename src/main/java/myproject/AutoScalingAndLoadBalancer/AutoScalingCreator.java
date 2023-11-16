@@ -9,6 +9,7 @@ import com.pulumi.aws.autoscaling.inputs.GroupLaunchTemplateArgs;
 import com.pulumi.aws.cloudwatch.MetricAlarm;
 import com.pulumi.aws.cloudwatch.MetricAlarmArgs;
 import com.pulumi.aws.ec2.LaunchTemplate;
+import com.pulumi.core.Output;
 
 import java.util.List;
 
@@ -16,12 +17,13 @@ import java.util.List;
 
 public class AutoScalingCreator {
 
-    public static Group createAutoScalingGroup(LaunchTemplate launchTemplate, TargetGroup targetGroup) {
+    public static Group createAutoScalingGroup(LaunchTemplate launchTemplate, TargetGroup targetGroup, Output<List<String>> subnetIds) {
 
         return new Group("myAutoScalingGroup", GroupArgs.builder()
-                .availabilityZones("us-west-2a")
+//                .availabilityZones("us-west-2b")
                 .maxSize(3)
                 .minSize(1)
+                .vpcZoneIdentifiers(subnetIds)
                 .launchTemplate(GroupLaunchTemplateArgs.builder()
                         .id(launchTemplate.id())
                         .version("$Latest")

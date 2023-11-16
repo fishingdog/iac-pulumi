@@ -21,7 +21,7 @@ public class SecurityGroupCreatorEC2 {
 
         addIngressRules(appSecurityGroup, loadBalancerSecurityGroup);
         addEgressRules(appSecurityGroup);
-        return loadBalancerSecurityGroup;
+        return appSecurityGroup;
     }
 
     private static void addIngressRules(SecurityGroup securityGroup, SecurityGroup loadBalancerSecurityGroup) {
@@ -40,6 +40,7 @@ public class SecurityGroupCreatorEC2 {
                 .ipProtocol("tcp")
                 .fromPort(8080)
                 .toPort(8080)
+//                .cidrIpv4("0.0.0.0/0")
                 .referencedSecurityGroupId(loadBalancerSecurityGroup.id())
                 .build());
     }
