@@ -23,38 +23,7 @@ public class LaunchTemplateCreator {
                 "echo \"DATABASE_USERNAME=csye6225\" >> ${ENV_FILE}\n" +
                 "echo \"DATABASE_PASSWORD=Qweqweqwe!23\" >> ${ENV_FILE}\n" +
                 "echo \"DB_DIALECT=org.hibernate.dialect.MariaDB103Dialect\" >> ${ENV_FILE}\n" +
-                "sudo chmod 644 ${ENV_FILE}\n"+
-                "cat <<EOT >> /opt/amazon-cloudwatch-agent.json\n" +
-                "{\n" +
-                "  \"agent\": {\n" +
-                "    \"metrics_collection_interval\": 5,\n" +
-                "    \"logfile\": \"/var/logs/amazon-cloudwatch-agent.log\"\n" +
-                "  },\n" +
-                "  \"logs\": {\n" +
-                "    \"logs_collected\": {\n" +
-                "      \"files\": {\n" +
-                "        \"collect_list\": [\n" +
-                "          {\n" +
-                "            \"file_path\": \"/opt/webapp.log\",\n" +
-                "            \"log_group_name\": \"csye6225\",\n" +
-                "            \"log_stream_name\": \"webapp\"\n" +
-                "          }\n" +
-                "        ]\n" +
-                "      }\n" +
-                "    },\n" +
-                "    \"log_stream_name\": \"cloudwatch_log_stream\"\n" +
-                "  },\n" +
-                "  \"metrics\":{\n" +
-                "    \"metrics_collected\":{\n" +
-                "      \"statsd\":{\n" +
-                "        \"service_address\":\":8125\",\n" +
-                "        \"metrics_collection_interval\":5,\n" +
-                "        \"metrics_aggregation_interval\":60\n" +
-                "      }\n" +
-                "    }\n" +
-                "  }\n" +
-                "}\n" +
-                "EOT\n" +
+                "sudo chmod 644 ${ENV_FILE}\n" +
                 "sudo chmod 644 /opt/amazon-cloudwatch-agent.json\n", dbURL);
 
 
