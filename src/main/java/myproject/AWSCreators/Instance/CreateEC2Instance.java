@@ -1,4 +1,4 @@
-package myproject.Instance;
+package myproject.AWSCreators.Instance;
 
 
 import com.pulumi.aws.ec2.*;
