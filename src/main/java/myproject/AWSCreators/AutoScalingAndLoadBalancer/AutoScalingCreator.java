@@ -1,4 +1,4 @@
-package myproject.AutoScalingAndLoadBalancer;
+package myproject.AWSCreators.AutoScalingAndLoadBalancer;
 
 import com.pulumi.aws.alb.TargetGroup;
 import com.pulumi.aws.autoscaling.Group;
@@ -6,8 +6,6 @@ import com.pulumi.aws.autoscaling.GroupArgs;
 import com.pulumi.aws.autoscaling.Policy;
 import com.pulumi.aws.autoscaling.PolicyArgs;
 import com.pulumi.aws.autoscaling.inputs.GroupLaunchTemplateArgs;
-import com.pulumi.aws.autoscaling.inputs.PolicyTargetTrackingConfigurationArgs;
-import com.pulumi.aws.autoscaling.inputs.PolicyTargetTrackingConfigurationPredefinedMetricSpecificationArgs;
 import com.pulumi.aws.cloudwatch.MetricAlarm;
 import com.pulumi.aws.cloudwatch.MetricAlarmArgs;
 import com.pulumi.aws.ec2.LaunchTemplate;

@@ -1,4 +1,4 @@
-package myproject.NetworkCreator;
+package myproject.AWSCreators.NetworkCreator;
 
 import com.pulumi.aws.ec2.Vpc;
 import com.pulumi.aws.ec2.VpcArgs;

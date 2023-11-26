@@ -1,4 +1,4 @@
-package myproject.AutoScalingAndLoadBalancer;
+package myproject.AWSCreators.AutoScalingAndLoadBalancer;
 
 import com.pulumi.aws.alb.*;
 import com.pulumi.aws.alb.inputs.ListenerDefaultActionArgs;
@@ -7,9 +7,6 @@ import com.pulumi.aws.ec2.SecurityGroup;
 import com.pulumi.aws.ec2.Vpc;
 import com.pulumi.core.Output;
 
-import java.lang.annotation.Target;
-import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
 
 public class LoadBalancerCreator {

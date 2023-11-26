@@ -1,4 +1,4 @@
-package myproject.SecurityGroup;
+package myproject.AWSCreators.SecurityGroup;
 
 import com.pulumi.aws.ec2.SecurityGroup;
 import com.pulumi.aws.ec2.SecurityGroupArgs;

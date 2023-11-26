@@ -1,4 +1,4 @@
-package myproject.AutoScalingAndLoadBalancer;
+package myproject.AWSCreators.AutoScalingAndLoadBalancer;
 
 import com.pulumi.aws.ec2.LaunchTemplate;
 import com.pulumi.aws.ec2.LaunchTemplateArgs;
@@ -11,7 +11,6 @@ import com.pulumi.core.Output;
 
 import java.util.Base64;
 import java.util.List;
-import java.util.Map;
 
 public class LaunchTemplateCreator {
 
