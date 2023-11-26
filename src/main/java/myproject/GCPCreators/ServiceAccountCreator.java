@@ -18,7 +18,7 @@ public class ServiceAccountCreator {
                 .displayName("Lambda Service Account")
                 .build());
 
-//        attachPolicy(lambdaAccount);
+        attachPolicy(lambdaAccount);
 
         ctx.export("lambdaServiceAccountId", lambdaAccount.accountId());
 
@@ -26,19 +26,19 @@ public class ServiceAccountCreator {
     }
 
 
-//    private static void attachPolicy(Account account) {
-//        final var admin = OrganizationsFunctions.getIAMPolicy(GetIAMPolicyArgs.builder()
-//                .bindings(GetIAMPolicyBindingArgs.builder()
-//                        .role("roles/storage.admin")
-//                        .members("user:ywu@fandm.edu")
-//                        .build())
-//                .build());
-//
+    private static void attachPolicy(Account account) {
+        final var admin = OrganizationsFunctions.getIAMPolicy(GetIAMPolicyArgs.builder()
+                .bindings(GetIAMPolicyBindingArgs.builder()
+                        .role("roles/storage.admin")
+                        .members(account.email().applyValue(List::of))
+                        .build())
+                .build());
+
 //        new IAMPolicy("admin-account-iam", IAMPolicyArgs.builder()
 //                .serviceAccountId(account.name())
 //                .policyData(admin.applyValue(GetIAMPolicyResult::policyData))
 //                .build());
-//    }
+    }
 
     public static Key createAccessKey(Context ctx, Account myAccount) {
         Key lambdaKey = new Key("mykey", KeyArgs.builder()
