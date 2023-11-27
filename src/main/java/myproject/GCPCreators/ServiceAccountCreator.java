@@ -7,6 +7,8 @@ import com.pulumi.gcp.organizations.inputs.GetIAMPolicyArgs;
 import com.pulumi.gcp.organizations.inputs.GetIAMPolicyBindingArgs;
 import com.pulumi.gcp.organizations.outputs.GetIAMPolicyResult;
 import com.pulumi.gcp.serviceaccount.*;
+import com.pulumi.gcp.storage.BucketIAMMember;
+import com.pulumi.gcp.storage.BucketIAMMemberArgs;
 
 import java.util.List;
 
@@ -18,7 +20,7 @@ public class ServiceAccountCreator {
                 .displayName("Lambda Service Account")
                 .build());
 
-        attachPolicy(lambdaAccount);
+        bindStorageObjectUserRole(lambdaAccount);
 
         ctx.export("lambdaServiceAccountId", lambdaAccount.accountId());
 
@@ -26,19 +28,19 @@ public class ServiceAccountCreator {
     }
 
 
-    private static void attachPolicy(Account account) {
-        final var admin = OrganizationsFunctions.getIAMPolicy(GetIAMPolicyArgs.builder()
-                .bindings(GetIAMPolicyBindingArgs.builder()
-                        .role("roles/storage.admin")
-                        .members(account.email().applyValue(List::of))
-                        .build())
-                .build());
-
-//        new IAMPolicy("admin-account-iam", IAMPolicyArgs.builder()
-//                .serviceAccountId(account.name())
-//                .policyData(admin.applyValue(GetIAMPolicyResult::policyData))
+//    private static void attachPolicy(Account account) {
+//        final var admin = OrganizationsFunctions.getIAMPolicy(GetIAMPolicyArgs.builder()
+//                .bindings(GetIAMPolicyBindingArgs.builder()
+//                        .role("roles/storage.admin")
+//                        .members(account.email().applyValue(List::of))
+//                        .build())
 //                .build());
-    }
+//
+////        new IAMPolicy("admin-account-iam", IAMPolicyArgs.builder()
+////                .serviceAccountId(account.name())
+////                .policyData(admin.applyValue(GetIAMPolicyResult::policyData))
+////                .build());
+//    }
 
     public static Key createAccessKey(Context ctx, Account myAccount) {
         Key lambdaKey = new Key("mykey", KeyArgs.builder()
@@ -49,6 +51,13 @@ public class ServiceAccountCreator {
         ctx.export("lambdaKeyId", lambdaKey.id());
 
         return lambdaKey;
+    }
 
+    private static void bindStorageObjectUserRole(Account serviceAccount) {
+        BucketIAMMember bucketIAMBinding = new BucketIAMMember("bucketIAM", BucketIAMMemberArgs.builder()
+                .bucket("fishdog")
+                .role("roles/storage.objectAdmin")
+                .member(serviceAccount.email().applyValue(email -> "serviceAccount:" + email))
+                .build());
     }
 }
