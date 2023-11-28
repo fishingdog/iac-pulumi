@@ -18,6 +18,7 @@ import myproject.AWSCreators.AutoScalingAndLoadBalancer.LaunchTemplateCreator;
 import myproject.AWSCreators.AutoScalingAndLoadBalancer.LoadBalancerCreator;
 import myproject.AWSCreators.CloudWatch.CloudWatchCreator;
 import myproject.AWSCreators.CloudWatch.RoleCreator;
+import myproject.AWSCreators.Instance.CreateEC2Instance;
 import myproject.AWSCreators.Instance.RdsCreator;
 import myproject.AWSCreators.NetworkCreator.*;
 import myproject.AWSCreators.SecurityGroup.SecurityGroupCreatorDB;
@@ -94,9 +95,17 @@ public class AWS {
         // create logGroup & logStream
         CloudWatchCreator.logGroupCreator();
 
+//        //test
+//        String ami = System.getenv("AMI");
+//        if (ami == null || Objects.equals(ami, "null")) {ami = "ami-0e735e95644dc74e2";}
+//        String keyName = System.getenv("AWS_ACCESS_KEY_NAME");
+//        if (keyName == null || Objects.equals(keyName, "null")) {keyName = "testA5";}
+//        Instance myInstance = CreateEC2Instance.createEC2Instance(appSecurityGroup, ami, pubSubnetList.get(0), keyName, rdsInstance, cloudWatchRole);
+
+
         // create Launch template
         String ami = System.getenv("AMI");
-        if (ami == null || Objects.equals(ami, "null")) {ami = "ami-06e930d39870c0680";}
+        if (ami == null || Objects.equals(ami, "null")) {ami = "ami-0e735e95644dc74e2";}
         String keyName = System.getenv("AWS_ACCESS_KEY_NAME");
         if (keyName == null || Objects.equals(keyName, "null")) {keyName = "testA5";}
         LaunchTemplate launchTemplate = LaunchTemplateCreator.createLaunchTemplate(ami, keyName, rdsInstance, cloudWatchRole, appSecurityGroup);
