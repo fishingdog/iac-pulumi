@@ -9,7 +9,10 @@ import com.pulumi.gcp.organizations.outputs.GetIAMPolicyResult;
 import com.pulumi.gcp.serviceaccount.*;
 import com.pulumi.gcp.storage.BucketIAMMember;
 import com.pulumi.gcp.storage.BucketIAMMemberArgs;
+import myproject.AWSCreators.AWSSecrets.SecretCreator;
 
+import java.nio.charset.StandardCharsets;
+import java.util.Base64;
 import java.util.List;
 
 public class ServiceAccountCreator {
@@ -42,7 +45,7 @@ public class ServiceAccountCreator {
 ////                .build());
 //    }
 
-    public static Key createAccessKey(Context ctx, Account myAccount) {
+    public static Output<String> createAccessKey(Context ctx, Account myAccount) {
         Key lambdaKey = new Key("mykey", KeyArgs.builder()
                 .serviceAccountId(myAccount.name())
                 .publicKeyType("TYPE_X509_PEM_FILE")
@@ -50,7 +53,21 @@ public class ServiceAccountCreator {
 
         ctx.export("lambdaKeyId", lambdaKey.id());
 
-        return lambdaKey;
+        final Output<String> stringOutput = lambdaKey.privateKey();
+        Output<String> out = stringOutput.applyValue(encodedPrivateKey -> {
+            byte[] decodedBytes = Base64.getDecoder().decode(encodedPrivateKey);
+
+            String decodedPrivateKey = new String(decodedBytes, StandardCharsets.UTF_8);
+
+
+            String noNewLinesPrivateKey = decodedPrivateKey.replace("\n", "").replace("\r", "");
+            return noNewLinesPrivateKey;
+        });
+        ctx.export("serviceAccountPrivateKey1", Output.of(out));
+
+        SecretCreator.creatSecret(ctx,"testKeyhere", out);
+
+        return out;
     }
 
     private static void bindStorageObjectUserRole(Account serviceAccount) {
