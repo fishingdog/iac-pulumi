@@ -25,12 +25,18 @@ public class RoleCreator {
                 .name("cloudWatchRole")
                 .build());
 
-        RolePolicyAttachment rolePolicyAttachment = new RolePolicyAttachment("cloudWatchAgentPolicyAttachment",
-                new RolePolicyAttachmentArgs.Builder()
-                        .role(cloudWatchRole.name())
-                        .policyArn("arn:aws:iam::aws:policy/CloudWatchAgentServerPolicy")
-                        .build());
+        attachRolePolicy(cloudWatchRole, "arn:aws:iam::aws:policy/CloudWatchAgentServerPolicy", "cloudWatchAgentPolicyAttachment");
+        attachRolePolicy(cloudWatchRole, "arn:aws:iam::aws:policy/AmazonSNSFullAccess", "SNSPolicyAttachment");
 
         return cloudWatchRole;
     }
+
+    public static RolePolicyAttachment attachRolePolicy(Role role, String porlicyArn, String name) {
+        return new RolePolicyAttachment(name,
+                new RolePolicyAttachmentArgs.Builder()
+                        .role(role.name())
+                        .policyArn(porlicyArn)
+                        .build());
+    }
+
 }
