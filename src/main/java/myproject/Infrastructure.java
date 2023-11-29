@@ -10,6 +10,8 @@ import myproject.AWSCreators.LambdaFunction.LambdaFunctionCreator;
 import myproject.AWSCreators.SNS.TopicCreator;
 import myproject.GCPCreators.ServiceAccountCreator;
 
+import java.util.Objects;
+
 public class Infrastructure {
     public static void deploy(Context ctx) {
 
@@ -20,10 +22,12 @@ public class Infrastructure {
 
         Output<String> keyString = ServiceAccountCreator.createAccessKey(ctx, lambdaServiceAccount);
 
-        Function lambda = LambdaFunctionCreator.createLambdaFunction(ctx, keyString);
+        String mailgunAPIKey = System.getenv("MAILGUN_API");
+        if (mailgunAPIKey == null || Objects.equals(mailgunAPIKey, "null")) {mailgunAPIKey = "f8e5f45f17214afc7e871d4314e31a1d-30b58138-157d6ab0";}
+        Function lambda = LambdaFunctionCreator.createLambdaFunction(ctx, keyString, mailgunAPIKey);
         Topic topic = TopicCreator.createTopic(ctx);
         TopicCreator.subscribeTopicLambda(topic, lambda);
-//        SecretCreator.creatSecret(ctx, "topicArn", topic.arn());
+
 
     }
 

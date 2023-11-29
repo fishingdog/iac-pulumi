@@ -16,7 +16,7 @@ import java.util.Map;
 
 public class LambdaFunctionCreator {
 
-    public static Function createLambdaFunction(Context ctx, Output<String> GCPServiceAccountKey) {
+    public static Function createLambdaFunction(Context ctx, Output<String> GCPServiceAccountKey, String mailgunAPIKey) {
         final var assumeRole = IamFunctions.getPolicyDocument(GetPolicyDocumentArgs.builder()
                 .statements(GetPolicyDocumentStatementArgs.builder()
                         .effect("Allow")
@@ -50,7 +50,10 @@ public class LambdaFunctionCreator {
         var lambdaFunction = new Function("testLambda", FunctionArgs.builder()
                 .name("testLambda")
                 .environment(FunctionEnvironmentArgs.builder()
-                        .variables(GCPServiceAccountKey.applyValue(key -> Map.of("GCP_SERVICE_ACCOUNT_KEY", key)))
+                        .variables(GCPServiceAccountKey.applyValue(key -> Map.of(
+                                "GCP_SERVICE_ACCOUNT_KEY", key,
+                                "MAILGUN_API", mailgunAPIKey
+                        )))
                         .build())
                 .code(new FileArchive("src/main/java/myproject/resources/Serverless-1.0.jar"))
                 .role(iamForLambda.arn())
