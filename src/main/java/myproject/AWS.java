@@ -105,7 +105,7 @@ public class AWS {
 
         // create Launch template
         String ami = System.getenv("AMI");
-        if (ami == null || Objects.equals(ami, "null")) {ami = "ami-0e735e95644dc74e2";}
+        if (ami == null || Objects.equals(ami, "null")) {ami = "ami-045b926087a695e15";}
         String keyName = System.getenv("AWS_ACCESS_KEY_NAME");
         if (keyName == null || Objects.equals(keyName, "null")) {keyName = "testA5";}
         LaunchTemplate launchTemplate = LaunchTemplateCreator.createLaunchTemplate(ami, keyName, rdsInstance, cloudWatchRole, appSecurityGroup);

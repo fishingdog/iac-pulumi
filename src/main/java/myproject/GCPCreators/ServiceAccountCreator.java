@@ -65,8 +65,6 @@ public class ServiceAccountCreator {
         });
         ctx.export("serviceAccountPrivateKey1", Output.of(out));
 
-        SecretCreator.creatSecret(ctx,"testKeyhere", out);
-
         return out;
     }
 
