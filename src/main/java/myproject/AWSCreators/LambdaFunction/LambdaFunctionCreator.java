@@ -17,7 +17,7 @@ import java.util.Map;
 
 public class LambdaFunctionCreator {
 
-    public static Function createLambdaFunction(Context ctx, Output<String> GCPServiceAccountKey, String mailgunAPIKey, Table dynamoDBTable) {
+    public static Function createLambdaFunction(Context ctx, Output<String> GCPServiceAccountKey, String mailgunAPIKey, Table dynamoDBTable, String GCPBucketName) {
         final var assumeRole = IamFunctions.getPolicyDocument(GetPolicyDocumentArgs.builder()
                 .statements(GetPolicyDocumentStatementArgs.builder()
                         .effect("Allow")
@@ -73,7 +73,8 @@ public class LambdaFunctionCreator {
                             return Map.of(
                                     "GCP_SERVICE_ACCOUNT_KEY", key,
                                     "MAILGUN_API", mailgunAPIKey,
-                                    "DYNAMODB_TABLE_NAME", table
+                                    "DYNAMODB_TABLE_NAME", table,
+                                    "GCP_STORAGE_BUCKET_NAME", GCPBucketName
                             );
                         }))
                         .build())
