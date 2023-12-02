@@ -17,13 +17,13 @@ import java.util.List;
 
 public class ServiceAccountCreator {
 
-    public static Account createServiceAccount(Context ctx) {
+    public static Account createServiceAccount(Context ctx, String GCPBucketName) {
         Account lambdaAccount = new Account("lambdaServiceAccount", AccountArgs.builder()
                 .accountId("lambda")
                 .displayName("Lambda Service Account")
                 .build());
 
-        bindStorageObjectUserRole(lambdaAccount);
+        bindStorageObjectUserRole(lambdaAccount, GCPBucketName);
 
         ctx.export("lambdaServiceAccountId", lambdaAccount.accountId());
 
@@ -68,9 +68,9 @@ public class ServiceAccountCreator {
         return out;
     }
 
-    private static void bindStorageObjectUserRole(Account serviceAccount) {
+    private static void bindStorageObjectUserRole(Account serviceAccount, String GCPBucketName) {
         BucketIAMMember bucketIAMBinding = new BucketIAMMember("bucketIAM", BucketIAMMemberArgs.builder()
-                .bucket("fishdog")
+                .bucket(GCPBucketName)
                 .role("roles/storage.objectAdmin")
                 .member(serviceAccount.email().applyValue(email -> "serviceAccount:" + email))
                 .build());

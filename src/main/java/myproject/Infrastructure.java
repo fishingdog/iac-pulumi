@@ -104,7 +104,11 @@ public class Infrastructure {
         CloudWatchCreator.logGroupCreator();
 
         GCP.runGCP(ctx);
-        Account lambdaServiceAccount = ServiceAccountCreator.createServiceAccount(ctx);
+
+        String GCPBucketName = System.getenv("GCP_STORAGE_BUCKET_NAME");
+        if (GCPBucketName == null || Objects.equals(GCPBucketName, "null")) {GCPBucketName = "fishdog";}
+
+        Account lambdaServiceAccount = ServiceAccountCreator.createServiceAccount(ctx, GCPBucketName);
 
         Output<String> keyString = ServiceAccountCreator.createAccessKey(ctx, lambdaServiceAccount);
 
@@ -112,7 +116,8 @@ public class Infrastructure {
 
         String mailgunAPIKey = System.getenv("MAILGUN_API");
         if (mailgunAPIKey == null || Objects.equals(mailgunAPIKey, "null")) {mailgunAPIKey = "f8e5f45f17214afc7e871d4314e31a1d-30b58138-157d6ab0";}
-        Function lambda = LambdaFunctionCreator.createLambdaFunction(ctx, keyString, mailgunAPIKey, dynamoDBTable);
+
+        Function lambda = LambdaFunctionCreator.createLambdaFunction(ctx, keyString, mailgunAPIKey, dynamoDBTable, GCPBucketName);
         Topic topic = TopicCreator.createTopic(ctx);
         TopicCreator.subscribeTopicLambda(topic, lambda);
 
