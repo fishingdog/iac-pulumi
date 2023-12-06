@@ -134,8 +134,11 @@ public class Infrastructure {
         // Create Load Balancer
         LoadBalancer appLoadBalancer = LoadBalancerCreator.createApplicationLoadBalancer(pubSubnetIdList, lBSecurityGroup);
 
-        // Create Listener for Load Balancer
+        // Create Listeners for Load Balancer
+        String domainName = System.getenv("MY_DOMAIN_NAME");
+        if (domainName == null || Objects.equals(domainName, "null")) {domainName = "dev.fishdog.me";}
         Listener listener = LoadBalancerCreator.listenerCreator(appLoadBalancer, targetGroup);
+        Listener httpsListenerCreator = LoadBalancerCreator.httpsListenerCreator(appLoadBalancer, targetGroup, domainName);
 
         // create auto-scaling group
         Group autoScalingGroup = AutoScalingCreator.createAutoScalingGroup(launchTemplate, targetGroup, pubSubnetIdList);
@@ -148,8 +151,6 @@ public class Infrastructure {
         MetricAlarm autoScalingDownMetricAlarm = AutoScalingCreator.createAutoScalingDownMetricAlarm(autoScalingDownPolicy, autoScalingGroup);
 
         // create "A record" and attach to the load balancer
-        String domainName = System.getenv("MY_DOMAIN_NAME");
-        if (domainName == null || Objects.equals(domainName, "null")) {domainName = "dev.fishdog.me";}
         Record myRecord = RecordCreator.createRecord(appLoadBalancer, domainName);
 
 
