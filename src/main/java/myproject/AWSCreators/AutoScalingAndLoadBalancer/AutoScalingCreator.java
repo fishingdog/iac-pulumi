@@ -21,6 +21,7 @@ public class AutoScalingCreator {
 
         return new Group("myAutoScalingGroup", GroupArgs.builder()
 //                .availabilityZones("us-west-2b")
+                .name("myAutoScalingGroup")
                 .maxSize(3)
                 .minSize(1)
                 .desiredCapacity(1)
@@ -32,11 +33,6 @@ public class AutoScalingCreator {
                 .defaultCooldown(60)
                 .healthCheckGracePeriod(300)
                 .targetGroupArns(targetGroup.arn().applyValue(List::of))
-//                .tags(GroupTagArgs.builder()
-//                        .key("Name")
-//                        .value("asg_launch_config")
-//                        .propagateAtLaunch(true)
-//                        .build())
                 .build());
     }
 
